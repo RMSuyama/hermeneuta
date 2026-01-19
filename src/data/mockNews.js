@@ -1,0 +1,67 @@
+export const mockNews = [
+    {
+        id: 1,
+        category: "RURAL",
+        title: "Direitos do Boia-Fria: Como Garantir o Vínculo Empregatício",
+        excerpt: "No Vale do Ribeira, o trabalho volante é realidade. Saiba como provar a subordinação e garantir direitos como FGTS, férias e previdência, mesmo sem contrato escrito.",
+        date: "19 Jan 2026",
+        author: "Dr. Hermeneuta",
+        image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        id: 2,
+        category: "PREVIDENCIÁRIO",
+        title: "Segurado Especial: Documentos Essenciais para Aposentadoria Rural",
+        excerpt: "Notas de produtor, ITR e declarações de sindicatos são canivetes suíços para o agricultor familiar buscar sua aposentadoria no INSS. Veja a lista completa.",
+        date: "19 Jan 2026",
+        author: "Redação Hermeneuta",
+    },
+    {
+        id: 3,
+        category: "CONSUMIDOR",
+        title: "Fraudes Bancárias via PIX: Responsabilidade das Instituições",
+        excerpt: "Bancos no Vale do Ribeira têm sido alvo de reclamações por falhas de segurança. Saiba como reaver valores de empréstimos não contratados e transferências fraudulentas.",
+        date: "18 Jan 2026",
+        author: "Equipe Jurídica",
+    },
+    {
+        id: 4,
+        category: "AMBIENTAL",
+        title: "Regularização de Pequenas Propriedades e APP no Vale",
+        excerpt: "Viver em harmonia com a natureza exige conhecer as regras de áreas de preservação permanente. O que comunidades quilombolas e caiçaras precisam saber?",
+        date: "17 Jan 2026",
+        author: "Dr. Roberto Silva",
+    },
+    {
+        id: 5,
+        category: "FAMÍLIA",
+        title: "Inventário Extrajudicial: Rapidez e Menos Custos em 2026",
+        excerpt: "Muitas famílias perdem prazos de inventário por medo da justiça. Saiba como a via administrativa em cartório resolve partilhas de imóveis rurais em tempo recorde.",
+        date: "16 Jan 2026",
+        author: "Dra. Helena Martins",
+    },
+    {
+        id: 6,
+        category: "TRABALHISTA",
+        title: "Pensão Alimentícia na Prática: Revisão e Prisão Civil",
+        excerpt: "A mudança na situação financeira do alimentante permite a revisão imediata. Entenda os limites legais e como garantir o direito do menor.",
+        date: "15 Jan 2026",
+        author: "Redação Hermeneuta",
+    },
+    {
+        id: 7,
+        category: "ARTIGO",
+        title: "Usucapião Rural: A Posse Mansa e Pacífica Transforma Vida",
+        excerpt: "Terrenos antigos sem escritura absoluta são comuns na região. Explicamos a diferença entre usucapião judicial e extrajudicial para o seu imóvel.",
+        date: "14 Jan 2026",
+        author: "Dr. Hermeneuta",
+    },
+    {
+        id: 8,
+        category: "ADMINISTRATIVO",
+        title: "Servidor Municipal: Progressão e Adicional de Insalubridade",
+        excerpt: "Muitos servidores do Vale não sabem que têm direito a correções em seus vencimentos por desvio de função ou condições adversas de trabalho.",
+        date: "13 Jan 2026",
+        author: "Equipe Jurídica",
+    }
+];
