@@ -3,8 +3,9 @@ import Navigation from './components/Navigation';
 import NewsFeed from './components/NewsFeed';
 import ContactDirectory from './components/ContactDirectory';
 import ConcursosFeed from './components/ConcursosFeed';
-import RealEstateFeed from './components/RealEstateFeed';
+import LinksUteisFeed from './components/LinksUteisFeed';
 import LeituraFeed from './components/LeituraFeed';
+import EventosFeed from './components/EventosFeed';
 import AdminPanel from './components/AdminPanel';
 import LoginForm from './components/LoginForm';
 import { useData } from './hooks/useData';
@@ -14,24 +15,33 @@ function App() {
   const [activeTab, setActiveTab] = useState('news');
   const [showAdmin, setShowAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(''); // 'admin' or 'editor'
   const data = useData();
 
-  const { news, concursos, contacts, properties, leituras, editors, loading } = data;
+  const { news, concursos, contacts, properties, leituras, editors, eventos, loading } = data;
 
   // Persistence for Auth
   useEffect(() => {
     const session = localStorage.getItem('hermeneuta_session');
-    if (session === 'active') setIsAuthenticated(true);
+    const role = localStorage.getItem('hermeneuta_role');
+    if (session === 'active') {
+      setIsAuthenticated(true);
+      if (role) setUserRole(role);
+    }
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = (role = 'editor') => {
     setIsAuthenticated(true);
+    setUserRole(role);
     localStorage.setItem('hermeneuta_session', 'active');
+    localStorage.setItem('hermeneuta_role', role);
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setUserRole('');
     localStorage.removeItem('hermeneuta_session');
+    localStorage.removeItem('hermeneuta_role');
     setShowAdmin(false);
   };
 
@@ -73,18 +83,20 @@ function App() {
       <main className="container">
         {showAdmin ? (
           !isAuthenticated ? (
-            <LoginForm onLogin={handleLogin} />
+            <LoginForm onLogin={handleLogin} editors={editors} />
           ) : (
             <AdminPanel
               data={data}
+              userRole={userRole}
               onClose={() => setShowAdmin(false)}
             />
           )
         ) : (
           <>
             {activeTab === 'news' && <NewsFeed news={news} editors={editors} />}
+            {activeTab === 'eventos' && <EventosFeed eventos={eventos} />}
             {activeTab === 'concursos' && <ConcursosFeed concursos={concursos} />}
-            {activeTab === 'realestate' && <RealEstateFeed properties={properties} />}
+            {activeTab === 'links' && <LinksUteisFeed />}
             {activeTab === 'leituras' && <LeituraFeed leituras={leituras} />}
             {activeTab === 'contacts' && <ContactDirectory contacts={contacts} />}
             {activeTab === 'about' && (

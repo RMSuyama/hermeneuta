@@ -1,58 +1,92 @@
 import React, { useState } from 'react';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+import { Lock, Eye, EyeOff, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const LoginForm = ({ onLogin }) => {
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
+const LoginForm = ({ onLogin, editors = [] }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (password === 'admin123') {
-            onLogin();
-        } else {
-            setError('Senha incorreta. Tente novamente.');
-            setPassword('');
-        }
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="login-card"
-        >
-            <div className="login-header">
-                <Lock size={32} className="login-icon" />
-                <h2>Acesso Restrito</h2>
-                <p>Insira a senha de administrador para editar o portal.</p>
-            </div>
+    // Admin Master Access
+    if (username === 'admin' && password === 'admin123') {
+      onLogin('admin');
+      return;
+    }
 
-            <form onSubmit={handleSubmit} className="login-form">
-                <div className="input-wrapper">
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Senha de acesso"
-                        autoFocus
-                    />
-                    <button
-                        type="button"
-                        className="toggle-visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                    >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                </div>
+    // Default legacy access (if needed, or remove)
+    if (password === 'redator123' && username === '') {
+      // Legacy fallback or maybe remove this to force username usage
+    }
 
-                {error && <p className="error-msg">{error}</p>}
+    // Check against registered editors
+    const foundEditor = editors.find(ed => ed.username === username && ed.password === password);
 
-                <button type="submit" className="login-btn">Entrar no Painel</button>
-            </form>
+    if (foundEditor) {
+      onLogin('editor');
+    } else {
+      setError('Credenciais inválidas. Tente novamente.');
+      setPassword('');
+      // Don't clear username so they can retry password
+    }
+  };
 
-            <style jsx>{`
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="login-card"
+    >
+      <div className="login-header">
+        <Lock size={32} className="login-icon" />
+        <h2>Acesso Restrito</h2>
+        <p>Insira suas credenciais para acessar o painel.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="input-wrapper">
+          <div className="icon-input">
+            <User size={18} className="field-icon" />
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Usuário (Login)"
+              className="with-icon"
+              autoFocus
+            />
+          </div>
+        </div>
+
+        <div className="input-wrapper">
+          <div className="icon-input">
+            <Lock size={18} className="field-icon" />
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Senha"
+              className="with-icon"
+            />
+            <button
+              type="button"
+              className="toggle-visibility"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        {error && <p className="error-msg">{error}</p>}
+
+        <button type="submit" className="login-btn">Entrar</button>
+      </form>
+
+      <style jsx>{`
         .login-card {
           max-width: 400px;
           margin: 100px auto;
@@ -84,6 +118,19 @@ const LoginForm = ({ onLogin }) => {
           position: relative;
           margin-bottom: 1rem;
         }
+        
+        .icon-input {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .field-icon {
+            position: absolute;
+            left: 1rem;
+            color: var(--color-text-muted);
+            pointer-events: none;
+        }
 
         input {
           width: 100%;
@@ -92,16 +139,20 @@ const LoginForm = ({ onLogin }) => {
           font-family: var(--font-sans);
           font-size: 1rem;
         }
+        
+        input.with-icon {
+            padding-left: 3rem;
+        }
 
         .toggle-visibility {
           position: absolute;
           right: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
           background: none;
           border: none;
           cursor: pointer;
           color: var(--color-text-muted);
+          display: flex;
+          align-items: center;
         }
 
         .error-msg {
@@ -128,8 +179,8 @@ const LoginForm = ({ onLogin }) => {
           background: var(--color-secondary);
         }
       `}</style>
-        </motion.div>
-    );
+    </motion.div>
+  );
 };
 
 export default LoginForm;

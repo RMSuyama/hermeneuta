@@ -42,6 +42,12 @@ const NewsFeed = ({ news, editors }) => {
             </div>
           )}
 
+          {selectedArticle.citation && (
+            <blockquote className="article-citation">
+              "{selectedArticle.citation}"
+            </blockquote>
+          )}
+
           <div className="article-body">
             {selectedArticle.content ? (
               selectedArticle.content.split('\n').map((paragraph, idx) => (
@@ -174,6 +180,18 @@ const NewsFeed = ({ news, editors }) => {
             margin-bottom: 3rem;
           }
 
+          .article-citation {
+             font-family: var(--font-serif);
+             font-style: italic;
+             font-size: 1rem;
+             color: var(--color-primary);
+             border-left: 4px solid var(--color-secondary);
+             padding: 1rem 2rem;
+             margin: 0 0 2rem 0;
+             background: rgba(212, 163, 115, 0.1);
+             text-indent: 0;
+          }
+
           .article-body {
             font-family: var(--font-serif);
             font-size: 1.2rem;
@@ -184,6 +202,7 @@ const NewsFeed = ({ news, editors }) => {
           
           .article-body p {
             margin-bottom: 1.5rem;
+            text-indent: 1.5rem;
           }
 
           @media (max-width: 768px) {
@@ -251,9 +270,9 @@ const NewsFeed = ({ news, editors }) => {
           <div className="sidebar-section">
             <h4 className="sidebar-title">Destaques Legislativos</h4>
             <ul className="links-list">
-              <li><a href="#">Diário Oficial do Estado</a></li>
-              <li><a href="#">Jurisprudência TJSP</a></li>
-              <li><a href="#">Portal do Cooperado OAB</a></li>
+              <li><a href="http://www.imprensaoficial.com.br/" target="_blank" rel="noopener noreferrer">Diário Oficial do Estado</a></li>
+              <li><a href="https://esaj.tjsp.jus.br/cjsg/consultaCompleta.do" target="_blank" rel="noopener noreferrer">Jurisprudência TJSP</a></li>
+              <li><a href="https://www.oabsp.org.br/servicos/fique-por-dentro" target="_blank" rel="noopener noreferrer">Portal OAB/SP</a></li>
             </ul>
           </div>
         </aside>

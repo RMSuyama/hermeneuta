@@ -1,12 +1,12 @@
 import React from 'react';
-import { Newspaper, Phone, Info, GraduationCap, Home, Gavel, BookOpen } from 'lucide-react';
+import { Newspaper, Phone, Info, GraduationCap, Link, Gavel, BookOpen, Calendar } from 'lucide-react';
 
 const Navigation = ({ activeTab, setActiveTab }) => {
   const links = [
     { id: 'news', label: 'Notícias', icon: <Newspaper size={18} /> },
     { id: 'concursos', label: 'Concursos', icon: <GraduationCap size={18} /> },
-
-    { id: 'realestate', label: 'Imóveis', icon: <Home size={18} /> },
+    { id: 'eventos', label: 'Eventos', icon: <Calendar size={18} /> },
+    { id: 'links', label: 'Links Úteis', icon: <Link size={18} /> },
     { id: 'leituras', label: 'Leituras', icon: <BookOpen size={18} /> },
     { id: 'contacts', label: 'Contatos', icon: <Phone size={18} /> },
     { id: 'about', label: 'Sobre', icon: <Info size={18} /> },

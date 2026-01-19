@@ -1,19 +1,17 @@
 import { useState, useEffect } from 'react';
 import { mockNews } from '../data/mockNews';
 import { mockConcursos } from '../data/mockConcursos';
-import { mockProperties } from '../data/mockProperties';
-import { mockJurisprudencias } from '../data/mockJurisprudencias';
 import { mockLeituras } from '../data/mockLeituras';
+import { mockEventos } from '../data/mockEventos';
 import { contacts as initialContacts } from '../data/contacts';
 
 const STORAGE_KEYS = {
     news: 'hermeneuta_news_data',
     concursos: 'hermeneuta_concursos_data',
     contacts: 'hermeneuta_contacts_data',
-    properties: 'hermeneuta_properties_data',
-    jurisprudencias: 'hermeneuta_jurisprudencias_data',
     leituras: 'hermeneuta_leituras_data',
-    editors: 'hermeneuta_editors_data'
+    editors: 'hermeneuta_editors_data',
+    eventos: 'hermeneuta_eventos_data_v2026'
 };
 
 const INITIAL_EDITORS = [
@@ -30,22 +28,13 @@ const INITIAL_DATA = {
     news: mockNews,
     concursos: mockConcursos,
     contacts: initialContacts,
-    properties: mockProperties,
-    jurisprudencias: mockJurisprudencias,
     leituras: mockLeituras,
-    editors: INITIAL_EDITORS
+    editors: INITIAL_EDITORS,
+    eventos: mockEventos
 };
 
 export const useData = () => {
-    const [data, setData] = useState({
-        news: [],
-        concursos: [],
-        contacts: [],
-        properties: [],
-        jurisprudencias: [],
-        leituras: [],
-        editors: []
-    });
+    const [data, setData] = useState(INITIAL_DATA);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -76,7 +65,7 @@ export const useData = () => {
         const newItem = {
             ...item,
             id: Date.now(),
-            date: (key === 'news' || key === 'jurisprudencias') ? new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : undefined
+            date: (key === 'news' || key === 'eventos') ? item.date || new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : undefined
         };
         const updated = [newItem, ...data[key]];
         saveData(key, updated);
