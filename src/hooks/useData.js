@@ -12,8 +12,19 @@ const STORAGE_KEYS = {
     contacts: 'hermeneuta_contacts_data',
     properties: 'hermeneuta_properties_data',
     jurisprudencias: 'hermeneuta_jurisprudencias_data',
-    leituras: 'hermeneuta_leituras_data'
+    leituras: 'hermeneuta_leituras_data',
+    editors: 'hermeneuta_editors_data'
 };
+
+const INITIAL_EDITORS = [
+    {
+        id: 'editor_default',
+        name: 'Redação Hermeneuta',
+        role: 'Equipe Editorial',
+        bio: 'Compromisso com a informação jurídica de qualidade no Vale do Ribeira.',
+        avatar: ''
+    }
+];
 
 const INITIAL_DATA = {
     news: mockNews,
@@ -21,7 +32,8 @@ const INITIAL_DATA = {
     contacts: initialContacts,
     properties: mockProperties,
     jurisprudencias: mockJurisprudencias,
-    leituras: mockLeituras
+    leituras: mockLeituras,
+    editors: INITIAL_EDITORS
 };
 
 export const useData = () => {
@@ -31,7 +43,8 @@ export const useData = () => {
         contacts: [],
         properties: [],
         jurisprudencias: [],
-        leituras: []
+        leituras: [],
+        editors: []
     });
     const [loading, setLoading] = useState(true);
 

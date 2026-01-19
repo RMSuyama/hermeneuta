@@ -4,13 +4,15 @@ import { motion } from 'framer-motion';
 
 const AdminPanel = ({ data, onClose }) => {
   const [activeAdminTab, setActiveAdminTab] = useState('news');
-  const { news, concursos, contacts, properties, jurisprudencias, leituras, addItem, deleteItem } = data;
+  const { news, concursos, contacts, properties, leituras, editors, addItem, deleteItem } = data;
 
-  const [newsForm, setNewsForm] = useState({ title: '', category: 'JUDICIÁRIO', excerpt: '', author: '', image: '' });
+  const [newsForm, setNewsForm] = useState({ title: '', category: 'JUDICIÁRIO', content: '', author: '', authorId: '', image: '' });
+  const [editorForm, setEditorForm] = useState({ name: '', role: '', bio: '', avatar: '' });
+  // ... other form states ...
   const [concursoForm, setConcursoForm] = useState({ entidade: '', cargo: '', vagas: '', remuneracao: '', status: 'Inscrições Abertas', nivel: 'MUNICIPAL' });
   const [propertyForm, setPropertyForm] = useState({ title: '', type: 'VENDA', price: '', location: '', description: '', image: '' });
-  const [juriForm, setJuriForm] = useState({ tribunal: 'TJSP', processo: '', relator: '', ementa: '', link: '#' });
-  const [leituraForm, setLeituraForm] = useState({ title: '', author: '', type: 'LIVRO', category: 'GERAL', description: '', link: '#' });
+
+  const [leituraForm, setLeituraForm] = useState({ title: '', author: '', type: 'LIVRO', category: 'GERAL', synopsis: '', cover: '', link: '#' });
   const [contactForm, setContactForm] = useState({ comarca: '', setor: '', telefone: '' });
 
   const newsCategories = ['JUDICIÁRIO', 'TRABALHISTA', 'PREVIDENCIÁRIO', 'RURAL', 'CONSUMIDOR', 'CIVIL', 'FAMÍLIA', 'AMBIENTAL', 'FUNDIÁRIO', 'ADMINISTRATIVO', 'SERVIDOR PÚBLICO', 'PENAL', 'ARTIGO'];
@@ -31,8 +33,8 @@ const AdminPanel = ({ data, onClose }) => {
           <h2>Painel de Gestão (Hermeneuta)</h2>
           <nav className="admin-nav-tabs">
             <button className={activeAdminTab === 'news' ? 'active' : ''} onClick={() => setActiveAdminTab('news')}><Newspaper size={16} /> Notícias</button>
+            <button className={activeAdminTab === 'editors' ? 'active' : ''} onClick={() => setActiveAdminTab('editors')}><User size={16} /> Redação</button>
             <button className={activeAdminTab === 'concursos' ? 'active' : ''} onClick={() => setActiveAdminTab('concursos')}><GraduationCap size={16} /> Concursos</button>
-            <button className={activeAdminTab === 'jurisprudencias' ? 'active' : ''} onClick={() => setActiveAdminTab('jurisprudencias')}><Gavel size={16} /> Jurisprudência</button>
             <button className={activeAdminTab === 'properties' ? 'active' : ''} onClick={() => setActiveAdminTab('properties')}><Home size={16} /> Imóveis</button>
             <button className={activeAdminTab === 'leituras' ? 'active' : ''} onClick={() => setActiveAdminTab('leituras')}><BookOpen size={16} /> Leituras</button>
             <button className={activeAdminTab === 'contacts' ? 'active' : ''} onClick={() => setActiveAdminTab('contacts')}><Phone size={16} /> Contatos</button>
@@ -44,40 +46,56 @@ const AdminPanel = ({ data, onClose }) => {
       <div className="admin-grid">
         <section className="publish-form">
           {activeAdminTab === 'news' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleAdd('news', newsForm, () => setNewsForm({ title: '', category: 'JUDICIÁRIO', excerpt: '', author: '', image: '' })); }} className="news-form">
+            <form onSubmit={(e) => { e.preventDefault(); handleAdd('news', newsForm, () => setNewsForm({ title: '', category: 'JUDICIÁRIO', content: '', author: '', authorId: '', image: '' })); }} className="news-form">
               <h3>Publicar Notícia</h3>
               <div className="form-group"><label>Título</label><input type="text" value={newsForm.title} onChange={e => setNewsForm({ ...newsForm, title: e.target.value })} required /></div>
               <div className="form-row">
                 <div className="form-group"><label>Categoria</label><select value={newsForm.category} onChange={e => setNewsForm({ ...newsForm, category: e.target.value })}>{newsCategories.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div className="form-group"><label>Autor</label><input type="text" value={newsForm.author} onChange={e => setNewsForm({ ...newsForm, author: e.target.value })} /></div>
+                <div className="form-group">
+                  <label>Autor</label>
+                  <select
+                    value={newsForm.authorId}
+                    onChange={e => {
+                      const selectedEditor = editors.find(ed => ed.id === e.target.value);
+                      setNewsForm({ ...newsForm, authorId: e.target.value, author: selectedEditor ? selectedEditor.name : '' });
+                    }}
+                  >
+                    <option value="">Selecione...</option>
+                    {editors?.map(editor => (
+                      <option key={editor.id} value={editor.id}>{editor.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div className="form-group"><label>Conteúdo</label><textarea rows="4" value={newsForm.excerpt} onChange={e => setNewsForm({ ...newsForm, excerpt: e.target.value })} required></textarea></div>
+              <div className="form-group"><label>URL da Imagem</label><input type="text" value={newsForm.image} onChange={e => setNewsForm({ ...newsForm, image: e.target.value })} placeholder="https://..." /></div>
+              <div className="form-group"><label>Conteúdo</label><textarea rows="10" value={newsForm.content} onChange={e => setNewsForm({ ...newsForm, content: e.target.value })} required></textarea></div>
               <button type="submit" className="submit-btn"><PlusCircle size={18} /> Publicar</button>
             </form>
           )}
 
-          {activeAdminTab === 'jurisprudencias' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleAdd('jurisprudencias', juriForm, () => setJuriForm({ tribunal: 'TJSP', processo: '', relator: '', ementa: '', link: '#' })); }} className="news-form">
-              <h3>Nova Jurisprudência</h3>
-              <div className="form-row">
-                <div className="form-group"><label>Tribunal</label><input type="text" value={juriForm.tribunal} onChange={e => setJuriForm({ ...juriForm, tribunal: e.target.value })} required /></div>
-                <div className="form-group"><label>Processo</label><input type="text" value={juriForm.processo} onChange={e => setJuriForm({ ...juriForm, processo: e.target.value })} required /></div>
-              </div>
-              <div className="form-group"><label>Relator</label><input type="text" value={juriForm.relator} onChange={e => setJuriForm({ ...juriForm, relator: e.target.value })} /></div>
-              <div className="form-group"><label>Ementa / Resumo</label><textarea rows="4" value={juriForm.ementa} onChange={e => setJuriForm({ ...juriForm, ementa: e.target.value })} required></textarea></div>
-              <button type="submit" className="submit-btn"><PlusCircle size={18} /> Adicionar Decisão</button>
+          {activeAdminTab === 'editors' && (
+            <form onSubmit={(e) => { e.preventDefault(); handleAdd('editors', editorForm, () => setEditorForm({ name: '', role: '', bio: '', avatar: '' })); }} className="news-form">
+              <h3>Novo Redator</h3>
+              <div className="form-group"><label>Nome</label><input type="text" value={editorForm.name} onChange={e => setEditorForm({ ...editorForm, name: e.target.value })} required /></div>
+              <div className="form-group"><label>Cargo / Profissão</label><input type="text" value={editorForm.role} onChange={e => setEditorForm({ ...editorForm, role: e.target.value })} placeholder="Ex: Advogado, Redator Chefe" required /></div>
+              <div className="form-group"><label>URL da Foto (Avatar)</label><input type="text" value={editorForm.avatar} onChange={e => setEditorForm({ ...editorForm, avatar: e.target.value })} placeholder="https://..." /></div>
+              <div className="form-group"><label>Minibio (Sobre o Autor)</label><textarea rows="4" value={editorForm.bio} onChange={e => setEditorForm({ ...editorForm, bio: e.target.value })} placeholder="Apaixonado por escrever..." required></textarea></div>
+              <button type="submit" className="submit-btn"><PlusCircle size={18} /> Adicionar Redator</button>
             </form>
           )}
 
+
+
           {activeAdminTab === 'leituras' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleAdd('leituras', leituraForm, () => setLeituraForm({ title: '', author: '', type: 'LIVRO', category: 'GERAL', description: '', link: '#' })); }} className="news-form">
+            <form onSubmit={(e) => { e.preventDefault(); handleAdd('leituras', leituraForm, () => setLeituraForm({ title: '', author: '', type: 'LIVRO', category: 'GERAL', synopsis: '', cover: '', link: '#' })); }} className="news-form">
               <h3>Nova Indicação de Leitura</h3>
               <div className="form-group"><label>Título da Obra</label><input type="text" value={leituraForm.title} onChange={e => setLeituraForm({ ...leituraForm, title: e.target.value })} required /></div>
               <div className="form-row">
                 <div className="form-group"><label>Autor</label><input type="text" value={leituraForm.author} onChange={e => setLeituraForm({ ...leituraForm, author: e.target.value })} required /></div>
-                <div className="form-group"><label>Tipo</label><select value={leituraForm.type} onChange={e => setLeituraForm({ ...leituraForm, type: e.target.value })}><option value="LIVRO">LIVRO</option><option value="ARTIGO">ARTIGO</option></select></div>
+                <div className="form-group"><label>Categoria</label><input type="text" value={leituraForm.category} onChange={e => setLeituraForm({ ...leituraForm, category: e.target.value })} placeholder="Ex: Filo do Direito" /></div>
               </div>
-              <div className="form-group"><label>Resumo / Por que ler?</label><textarea rows="3" value={leituraForm.description} onChange={e => setLeituraForm({ ...leituraForm, description: e.target.value })} required></textarea></div>
+              <div className="form-group"><label>URL da Capa</label><input type="text" value={leituraForm.cover} onChange={e => setLeituraForm({ ...leituraForm, cover: e.target.value })} placeholder="http://..." /></div>
+              <div className="form-group"><label>Sinopse</label><textarea rows="6" value={leituraForm.synopsis} onChange={e => setLeituraForm({ ...leituraForm, synopsis: e.target.value })} required></textarea></div>
               <button type="submit" className="submit-btn"><PlusCircle size={18} /> Adicionar Indicação</button>
             </form>
           )}
@@ -125,8 +143,8 @@ const AdminPanel = ({ data, onClose }) => {
             {data[activeAdminTab]?.map(item => (
               <div key={item.id} className="admin-item-row">
                 <div className="item-info">
-                  <span>{item.category || item.tribunal || item.type || item.comarca}</span>
-                  <h4>{item.title || item.processo || item.cargo || item.setor}</h4>
+                  <span>{item.category || item.role || item.tribunal || item.type || item.comarca}</span>
+                  <h4>{item.title || item.name || item.processo || item.cargo || item.setor}</h4>
                 </div>
                 <button onClick={() => deleteItem(activeAdminTab, item.id)} className="del-btn"><Trash2 size={16} /></button>
               </div>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, User, ArrowRight } from 'lucide-react';
+import { Calendar, User, ArrowRight, ArrowLeft } from 'lucide-react';
 
-const NewsFeed = ({ news }) => {
+const NewsFeed = ({ news, editors }) => {
   const [selectedArticle, setSelectedArticle] = useState(null);
 
   if (!news || news.length === 0) return <div className="news-feed">Nenhuma notícia publicada.</div>;
@@ -10,6 +10,192 @@ const NewsFeed = ({ news }) => {
   const featured = news[0];
   const others = news.slice(1);
 
+  // Article View Component (Internal)
+  if (selectedArticle) {
+    const author = (editors || []).find(e => e.id === selectedArticle.authorId) ||
+      (editors || []).find(e => e.name === selectedArticle.author) ||
+      { name: selectedArticle.author || 'Redação', role: 'Colaborador', bio: '', avatar: '' };
+
+    return (
+      <div className="article-page-view">
+        <button className="back-btn" onClick={() => setSelectedArticle(null)}>
+          <ArrowLeft size={16} /> Voltar para Notícias
+        </button>
+
+        <motion.article
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="full-article-content"
+        >
+          <div className="article-header">
+            <span className="category-tag">{selectedArticle.category}</span>
+            <h1 className="article-title">{selectedArticle.title}</h1>
+            <div className="article-meta-row">
+              <span className="meta-item"><Calendar size={14} /> {selectedArticle.date}</span>
+              <span className="meta-item"><User size={14} /> {author.name}</span>
+            </div>
+          </div>
+
+          {selectedArticle.image && (
+            <div className="article-image-container">
+              <img src={selectedArticle.image} alt={selectedArticle.title} />
+            </div>
+          )}
+
+          <div className="article-body">
+            {selectedArticle.content ? (
+              selectedArticle.content.split('\n').map((paragraph, idx) => (
+                paragraph.trim() !== '' && <p key={idx}>{paragraph}</p>
+              ))
+            ) : (
+              <p className="fallback-text">{selectedArticle.excerpt}</p>
+            )}
+          </div>
+
+          <div className="author-profile">
+            <div className="author-avatar">
+              {author.avatar ? <img src={author.avatar} alt={author.name} /> : <User size={32} />}
+            </div>
+            <div className="author-info">
+              <h4>{author.name}</h4>
+              <span className="author-role">{author.role}</span>
+              {author.bio && <p className="author-bio">"{author.bio}"</p>}
+            </div>
+          </div>
+        </motion.article>
+
+        <style jsx>{`
+          .article-page-view {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 0;
+            animation: fadeIn 0.3s ease-in;
+          }
+
+          /* ... (existing styles) ... */
+
+          .author-profile {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+          }
+
+          .author-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+          }
+
+          .author-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+          .author-info h4 {
+            font-size: 1.2rem;
+            margin: 0;
+            color: var(--color-primary);
+          }
+
+          .author-role {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--color-secondary);
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.5rem;
+          }
+
+          .author-bio {
+            font-style: italic;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+          }
+
+          .back-btn {
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-sans);
+            font-weight: 700;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+          }
+          .back-btn:hover { color: var(--color-secondary); }
+
+          .article-title {
+            font-size: 2.5rem;
+            line-height: 1.2;
+            color: var(--color-primary);
+            margin: 1rem 0;
+          }
+
+          .article-meta-row {
+            display: flex;
+            gap: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+          }
+
+          .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 600;
+          }
+
+          .article-image-container img {
+            width: 100%;
+            height: auto;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 3rem;
+          }
+
+          .article-body {
+            font-family: var(--font-serif);
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #1a1a1a;
+            text-align: justify;
+          }
+          
+          .article-body p {
+            margin-bottom: 1.5rem;
+          }
+
+          @media (max-width: 768px) {
+            .article-title { font-size: 2rem; }
+            .author-profile { flex-direction: column; align-items: center; text-align: center; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // List View (Feed)
   return (
     <div className="news-feed">
       <div className="main-grid">
@@ -23,7 +209,9 @@ const NewsFeed = ({ news }) => {
             <div className="category-tag">{featured.category}</div>
             <h2>{featured.title}</h2>
             {featured.image && <img src={featured.image} alt={featured.title} className="featured-img" />}
-            <p className="excerpt">{featured.excerpt}</p>
+            <p className="excerpt">
+              {featured.excerpt || (featured.content ? featured.content.substring(0, 180) + '...' : '')}
+            </p>
             <div className="article-meta">
               <span>{featured.date}</span> • <span>Por {featured.author}</span>
             </div>
@@ -42,7 +230,9 @@ const NewsFeed = ({ news }) => {
               >
                 <div className="category-tag small">{newsItem.category}</div>
                 <h3>{newsItem.title}</h3>
-                <p className="excerpt small">{newsItem.excerpt}</p>
+                <p className="excerpt small">
+                  {newsItem.excerpt || (newsItem.content ? newsItem.content.substring(0, 100) + '...' : '')}
+                </p>
                 <div className="article-meta small">
                   {newsItem.date}
                 </div>
@@ -69,55 +259,8 @@ const NewsFeed = ({ news }) => {
         </aside>
       </div>
 
-      {/* Full Article Modal */}
-      <AnimatePresence>
-        {selectedArticle && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="article-modal-overlay"
-            onClick={() => setSelectedArticle(null)}
-          >
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              className="article-modal-content"
-              onClick={e => e.stopPropagation()}
-            >
-              <button className="close-modal" onClick={() => setSelectedArticle(null)}><X size={24} /></button>
-
-              <div className="modal-header">
-                <div className="category-tag">{selectedArticle.category}</div>
-                <h1>{selectedArticle.title}</h1>
-                <div className="modal-meta">
-                  <div className="meta-item"><Calendar size={16} /> {selectedArticle.date}</div>
-                  <div className="meta-item"><User size={16} /> Por {selectedArticle.author || 'Redação Hermeneuta'}</div>
-                </div>
-              </div>
-
-              {selectedArticle.image && <img src={selectedArticle.image} alt={selectedArticle.title} className="modal-img" />}
-
-              <div className="modal-body">
-                <p className="lead-text">{selectedArticle.excerpt}</p>
-                <div className="full-text">
-                  <p>Este é o conteúdo integral da matéria. No sistema Hermeneuta, as notícias são apresentadas com foco na clareza e precisão jurídica para os profissionais do Vale do Ribeira.</p>
-                  <p>As atualizações legislativas e decisões judiciais recentes são fundamentais para a prática advocatícia regional, especialmente em áreas como o Direito Rural e Ambiental, pilares da nossa economia local.</p>
-                  <p>Fique atento às próximas edições para mais detalhes sobre os desdobramentos deste tema.</p>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <div className="footer-rule"></div>
-                <p>&copy; Hermeneuta - Todos os direitos reservados</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <style jsx>{`
+        /* Existing News Styles (Re-used) */
         .news-feed { margin-top: 1rem; }
         .featured-article { cursor: pointer; transition: transform 0.2s; }
         .featured-article:hover { transform: translateY(-2px); }
@@ -138,121 +281,21 @@ const NewsFeed = ({ news }) => {
           cursor: pointer;
         }
 
-        /* Modal Styles */
-        .article-modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0,0,0,0.8);
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-          padding: 2rem;
-          z-index: 1000;
-          overflow-y: auto;
-        }
-
-        .article-modal-content {
-          background: #fdfaf5;
-          width: 100%;
-          max-width: 800px;
-          padding: 4rem;
-          position: relative;
-          box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-          border: 1px solid var(--color-primary);
-        }
-
-        .close-modal {
-          position: absolute;
-          top: 1.5rem;
-          right: 1.5rem;
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: var(--color-text-muted);
-        }
-
-        .modal-header h1 {
-          font-size: 3rem;
-          margin: 1.5rem 0;
-          line-height: 1.1;
-        }
-
-        .modal-meta {
-          display: flex;
-          gap: 2rem;
-          padding: 1rem 0;
-          border-top: 1px solid var(--color-border);
-          border-bottom: 1px solid var(--color-border);
-          margin-bottom: 2rem;
-        }
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-family: var(--font-sans);
-          font-size: 0.85rem;
-          color: var(--color-text-muted);
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .modal-img {
-          width: 100%;
-          height: 400px;
-          object-fit: cover;
-          margin-bottom: 2rem;
-          filter: grayscale(0.2);
-        }
-
-        .modal-body {
-          font-size: 1.25rem;
-          line-height: 1.6;
-          color: var(--color-text);
-        }
-
-        .lead-text {
-          font-weight: 700;
-          margin-bottom: 2rem;
-          color: var(--color-primary);
-        }
-
-        .full-text p {
-          margin-bottom: 1.5rem;
-        }
-
-        .modal-footer {
-          margin-top: 4rem;
-          text-align: center;
-        }
-
-        .footer-rule {
-          height: 1px;
-          background: var(--color-border);
-          margin-bottom: 1rem;
-        }
-
-        .modal-footer p {
-          font-size: 0.75rem;
-          color: var(--color-text-muted);
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-
-        @media (max-width: 768px) {
-          .article-modal-content { padding: 2rem; }
-          .modal-header h1 { font-size: 2rem; }
-          .modal-meta { flex-direction: column; gap: 0.5rem; }
-        }
-
-        /* Existing News Styles */
         .category-tag { font-family: var(--font-sans); font-size: 0.7rem; font-weight: 800; color: var(--color-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
         .featured-article h2 { font-size: 2.5rem; margin-bottom: 1rem; }
-        .featured-img { width: 100%; height: 400px; object-fit: cover; margin: 1.5rem 0; filter: grayscale(0.2); }
-        .excerpt { font-size: 1.1rem; color: var(--color-text); margin-bottom: 1rem; }
+        .featured-img { width: 100%; height: 250px; object-fit: cover; margin: 1.5rem 0; filter: grayscale(0.2); }
+        .excerpt { 
+          font-size: 1.1rem; 
+          color: var(--color-text); 
+          margin-bottom: 1rem;
+          display: -webkit-box;
+          -webkit-line-clamp: 5;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .small .excerpt {
+          -webkit-line-clamp: 3;
+        }
         .article-meta { font-size: 0.85rem; color: var(--color-text-muted); border-top: 1px solid var(--color-border); padding-top: 0.5rem; }
         .sub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem; padding-top: 2rem; border-top: 4px double var(--color-border); }
         .sub-article h3 { font-size: 1.25rem; margin-bottom: 0.75rem; }

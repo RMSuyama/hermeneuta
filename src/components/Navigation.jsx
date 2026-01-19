@@ -5,7 +5,7 @@ const Navigation = ({ activeTab, setActiveTab }) => {
   const links = [
     { id: 'news', label: 'Notícias', icon: <Newspaper size={18} /> },
     { id: 'concursos', label: 'Concursos', icon: <GraduationCap size={18} /> },
-    { id: 'jurisprudencias', label: 'Jurisprudência', icon: <Gavel size={18} /> },
+
     { id: 'realestate', label: 'Imóveis', icon: <Home size={18} /> },
     { id: 'leituras', label: 'Leituras', icon: <BookOpen size={18} /> },
     { id: 'contacts', label: 'Contatos', icon: <Phone size={18} /> },

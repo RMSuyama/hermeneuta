@@ -4,7 +4,6 @@ import NewsFeed from './components/NewsFeed';
 import ContactDirectory from './components/ContactDirectory';
 import ConcursosFeed from './components/ConcursosFeed';
 import RealEstateFeed from './components/RealEstateFeed';
-import JurisprudenciaFeed from './components/JurisprudenciaFeed';
 import LeituraFeed from './components/LeituraFeed';
 import AdminPanel from './components/AdminPanel';
 import LoginForm from './components/LoginForm';
@@ -17,7 +16,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const data = useData();
 
-  const { news, concursos, contacts, properties, jurisprudencias, leituras, loading } = data;
+  const { news, concursos, contacts, properties, leituras, editors, loading } = data;
 
   // Persistence for Auth
   useEffect(() => {
@@ -83,9 +82,8 @@ function App() {
           )
         ) : (
           <>
-            {activeTab === 'news' && <NewsFeed news={news} />}
+            {activeTab === 'news' && <NewsFeed news={news} editors={editors} />}
             {activeTab === 'concursos' && <ConcursosFeed concursos={concursos} />}
-            {activeTab === 'jurisprudencias' && <JurisprudenciaFeed jurisprudencias={jurisprudencias} />}
             {activeTab === 'realestate' && <RealEstateFeed properties={properties} />}
             {activeTab === 'leituras' && <LeituraFeed leituras={leituras} />}
             {activeTab === 'contacts' && <ContactDirectory contacts={contacts} />}
