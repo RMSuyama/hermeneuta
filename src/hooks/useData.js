@@ -33,11 +33,13 @@ export const useData = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [newsRes, eventosRes, editorsRes, contactsRes, configRes] = await Promise.all([
+            const [newsRes, eventosRes, editorsRes, contactsRes, leiturasRes, concursosRes, configRes] = await Promise.all([
                 supabase.from('news').select('*').order('created_at', { ascending: false }),
                 supabase.from('eventos').select('*').order('date', { ascending: true }),
                 supabase.from('editors').select('*'),
                 supabase.from('contacts').select('*'),
+                supabase.from('leituras').select('*').order('created_at', { ascending: false }),
+                supabase.from('concursos').select('*').order('created_at', { ascending: false }),
                 supabase.from('config').select('*')
             ]);
 
@@ -90,8 +92,8 @@ export const useData = () => {
                 eventos: finalEventos || [],
                 editors: finalEditors || [],
                 contacts: finalContacts || [],
-                concursos: mockConcursos,
-                leituras: mockLeituras,
+                concursos: concursosRes.data || [],
+                leituras: leiturasRes.data || [],
                 properties: [] // Keep for compatibility even if empty
             });
 
@@ -108,7 +110,7 @@ export const useData = () => {
 
     const addItem = async (key, item) => {
         try {
-            const tableMap = { news: 'news', eventos: 'eventos', editors: 'editors', contacts: 'contacts' };
+            const tableMap = { news: 'news', eventos: 'eventos', editors: 'editors', contacts: 'contacts', leituras: 'leituras', concursos: 'concursos' };
             const tableName = tableMap[key];
 
             // Align form authorId with DB author_id for news
