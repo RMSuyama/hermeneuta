@@ -6,11 +6,11 @@ import { mockEventos } from '../data/mockEventos';
 import { contacts as initialContacts } from '../data/contacts';
 
 const STORAGE_KEYS = {
-    news: 'hermeneuta_news_data',
-    concursos: 'hermeneuta_concursos_data',
-    contacts: 'hermeneuta_contacts_data',
-    leituras: 'hermeneuta_leituras_data',
-    editors: 'hermeneuta_editors_data',
+    news: 'hermeneuta_news_data_v2026',
+    concursos: 'hermeneuta_concursos_data_v2026',
+    contacts: 'hermeneuta_contacts_data_v2026',
+    leituras: 'hermeneuta_leituras_data_v2026',
+    editors: 'hermeneuta_editors_data_v2026',
     eventos: 'hermeneuta_eventos_data_v2026'
 };
 
