@@ -423,6 +423,12 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                   <div className="item-info">
                     <span>{item?.category || item?.role || item?.tribunal || item?.type || item?.comarca}</span>
                     <h4>{item?.title || item?.name || item?.processo || item?.cargo || item?.setor || item?.username}</h4>
+                    {/* Show publication date for news */}
+                    {activeAdminTab === 'news' && item?.created_at && (
+                      <span style={{ fontSize: '0.7rem', color: '#999', display: 'block', marginTop: '0.25rem' }}>
+                        Publicado em: {new Date(item.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
 
                     {/* Author Editing for Admins */}
                     {userRole === 'admin' && activeAdminTab === 'news' && (
