@@ -1,85 +1,203 @@
+
 import { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 import { mockNews } from '../data/mockNews';
 import { mockConcursos } from '../data/mockConcursos';
 import { mockLeituras } from '../data/mockLeituras';
 import { mockEventos } from '../data/mockEventos';
 import { contacts as initialContacts } from '../data/contacts';
 
-const STORAGE_KEYS = {
-    news: 'hermeneuta_news_data_v2026',
-    concursos: 'hermeneuta_concursos_data_v2026',
-    contacts: 'hermeneuta_contacts_data_v2026',
-    leituras: 'hermeneuta_leituras_data_v2026',
-    editors: 'hermeneuta_editors_data_v2026',
-    eventos: 'hermeneuta_eventos_data_v2026'
-};
-
 const INITIAL_EDITORS = [
     {
-        id: 'editor_default',
         name: 'Redação Hermeneuta',
         role: 'Equipe Editorial',
         bio: 'Compromisso com a informação jurídica de qualidade no Vale do Ribeira.',
-        avatar: ''
+        avatar: '',
+        username: 'admin',
+        password: '123'
     }
 ];
 
-const INITIAL_DATA = {
-    news: mockNews,
-    concursos: mockConcursos,
-    contacts: initialContacts,
-    leituras: mockLeituras,
-    editors: INITIAL_EDITORS,
-    eventos: mockEventos
-};
-
 export const useData = () => {
-    const [data, setData] = useState(INITIAL_DATA);
+    const [data, setData] = useState({
+        news: [],
+        concursos: [],
+        contacts: [],
+        leituras: [], // Leituras might still be local if not in DB, but let's assume local for now or add to DB later
+        editors: [],
+        eventos: []
+    });
+    const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const loadedData = {};
-        Object.keys(STORAGE_KEYS).forEach(key => {
-            const saved = localStorage.getItem(STORAGE_KEYS[key]);
-            if (saved) {
-                try {
-                    loadedData[key] = JSON.parse(saved);
-                } catch (e) {
-                    console.error(`Error parsing ${key}:`, e);
-                    loadedData[key] = INITIAL_DATA[key];
-                }
-            } else {
-                loadedData[key] = INITIAL_DATA[key];
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            // Fetch all tables in parallel
+            const [newsRes, eventosRes, editorsRes, contactsRes, configRes] = await Promise.all([
+                supabase.from('news').select('*').order('created_at', { ascending: false }),
+                supabase.from('eventos').select('*').order('date', { ascending: true }),
+                supabase.from('editors').select('*'),
+                supabase.from('contacts').select('*'),
+                supabase.from('config').select('*')
+            ]);
+
+            // Maintenance Check
+            const maintenance = configRes.data?.find(c => c.key === 'maintenance_mode');
+            if (maintenance) setIsMaintenanceMode(maintenance.value === true);
+
+            // SEEDING LOGIC: If tables are empty, populate with mocks
+            if (newsRes.data?.length === 0) {
+                console.log('Seeding News...');
+                const seedNews = mockNews.map(n => ({
+                    title: n.title,
+                    category: n.category,
+                    content: n.content,
+                    citation: n.citation || '',
+                    author: n.author || '',
+                    author_id: n.authorId?.toString() || '',
+                    image: n.image || '',
+                    date: n.date
+                }));
+                await supabase.from('news').insert(seedNews);
+                newsRes.data = seedNews; // Update local reference
             }
-        });
-        setData(loadedData);
-        setLoading(false);
+
+            if (eventosRes.data?.length === 0) {
+                console.log('Seeding Eventos...');
+                await supabase.from('eventos').insert(mockEventos.map(e => ({
+                    title: e.title,
+                    date: e.date,
+                    location: e.location,
+                    description: e.description,
+                    type: e.type,
+                    link: e.link
+                })));
+                eventosRes.data = mockEventos;
+            }
+
+            if (editorsRes.data?.length === 0) {
+                // Check if we need to seed editors
+                console.log('Seeding Editors...');
+                await supabase.from('editors').insert(INITIAL_EDITORS);
+            }
+
+            // For contacts, we can seed or just leave them
+            if (contactsRes.data?.length === 0) {
+                await supabase.from('contacts').insert(initialContacts);
+            }
+
+            // Re-fetch or just use mixed data? Let's assume re-fetch or manual set for simplicity in this flow
+            // Actually, let's just use what we have or refetch if we seeded. 
+            // Better to simple set what we got.
+
+            // Re-fetch editors and contacts to be sure
+            const { data: finalEditors } = await supabase.from('editors').select('*');
+            const { data: finalContacts } = await supabase.from('contacts').select('*');
+            const { data: finalNews } = await supabase.from('news').select('*').order('created_at', { ascending: false });
+            const { data: finalEventos } = await supabase.from('eventos').select('*').order('date', { ascending: true });
+
+
+            setData({
+                news: finalNews || [],
+                eventos: finalEventos || [],
+                editors: finalEditors || [],
+                contacts: finalContacts || [],
+                concursos: mockConcursos, // Still local for now unless we add table
+                leituras: mockLeituras    // Still local for now
+            });
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
-    const saveData = (key, newList) => {
-        setData(prev => ({ ...prev, [key]: newList }));
-        localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(newList));
+    const addItem = async (key, item) => {
+        try {
+            // Mapping key to table name
+            const tableMap = {
+                news: 'news',
+                eventos: 'eventos',
+                editors: 'editors',
+                contacts: 'contacts'
+            };
+
+            const tableName = tableMap[key];
+            if (!tableName) {
+                // For non-DB items (concursos, leituras), fallback to local state update only (won't persist on refresh)
+                // Or better, log warning. For this scope, let's assume we prioritized DB items.
+                setData(prev => ({ ...prev, [key]: [item, ...prev[key]] }));
+                return;
+            }
+
+            const { data: inserted, error } = await supabase.from(tableName).insert([item]).select();
+
+            if (error) throw error;
+
+            if (inserted) {
+                setData(prev => ({ ...prev, [key]: [inserted[0], ...prev[key]] }));
+            }
+        } catch (error) {
+            console.error(`Error adding to ${key}:`, error);
+            alert("Erro ao salvar. Verifique o console.");
+        }
     };
 
-    const addItem = (key, item) => {
-        const newItem = {
-            ...item,
-            id: Date.now(),
-            date: (key === 'news' || key === 'eventos') ? item.date || new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : undefined
-        };
-        const updated = [newItem, ...data[key]];
-        saveData(key, updated);
+    const deleteItem = async (key, id) => {
+        try {
+            const tableMap = { news: 'news', eventos: 'eventos', editors: 'editors', contacts: 'contacts' };
+            const tableName = tableMap[key];
+
+            if (!tableName) {
+                setData(prev => ({ ...prev, [key]: prev[key].filter(i => i.id !== id) }));
+                return;
+            }
+
+            const { error } = await supabase.from(tableName).delete().eq('id', id);
+            if (error) throw error;
+
+            setData(prev => ({ ...prev, [key]: prev[key].filter(i => i.id !== id) }));
+
+        } catch (error) {
+            console.error(`Error deleting from ${key}:`, error);
+        }
     };
 
-    const deleteItem = (key, id) => {
-        const updated = data[key].filter(item => item.id !== id);
-        saveData(key, updated);
+    const updateItem = async (key, id, updatedFields) => {
+        try {
+            const tableMap = { news: 'news', eventos: 'eventos', editors: 'editors', contacts: 'contacts' };
+            const tableName = tableMap[key];
+
+            if (!tableName) {
+                setData(prev => ({ ...prev, [key]: prev[key].map(i => i.id === id ? { ...i, ...updatedFields } : i) }));
+                return;
+            }
+
+            const { error } = await supabase.from(tableName).update(updatedFields).eq('id', id);
+            if (error) throw error;
+
+            setData(prev => ({ ...prev, [key]: prev[key].map(i => i.id === id ? { ...i, ...updatedFields } : i) }));
+
+        } catch (error) {
+            console.error(`Error updating ${key}:`, error);
+        }
     };
 
-    const updateItem = (key, id, updatedFields) => {
-        const updated = data[key].map(item => item.id === id ? { ...item, ...updatedFields } : item);
-        saveData(key, updated);
+    const updateConfig = async (key, value) => {
+        try {
+            const { error } = await supabase.from('config').upsert({ key, value }).eq('key', key);
+            if (error) throw error;
+            if (key === 'maintenance_mode') setIsMaintenanceMode(value === true);
+        } catch (error) {
+            console.error(`Error updating config ${key}:`, error);
+        }
     };
 
-    return { ...data, addItem, deleteItem, updateItem, loading };
+    return { ...data, addItem, deleteItem, updateItem, updateConfig, isMaintenanceMode, loading, refresh: fetchData };
 };

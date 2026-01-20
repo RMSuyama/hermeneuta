@@ -17,8 +17,8 @@ const AdminPanel = ({ data, onClose, userRole }) => {
 
   const newsCategories = ['JUDICIÁRIO', 'TRABALHISTA', 'PREVIDENCIÁRIO', 'RURAL', 'CONSUMIDOR', 'CIVIL', 'FAMÍLIA', 'AMBIENTAL', 'FUNDIÁRIO', 'ADMINISTRATIVO', 'SERVIDOR PÚBLICO', 'PENAL', 'ARTIGO'];
 
-  const handleAdd = (key, form, resetForm) => {
-    addItem(key, form);
+  const handleAdd = async (key, form, resetForm) => {
+    await addItem(key, form);
     resetForm();
   };
 
@@ -48,6 +48,15 @@ const AdminPanel = ({ data, onClose, userRole }) => {
             {/* Removed Imóveis button */}
             <button className={activeAdminTab === 'leituras' ? 'active' : ''} onClick={() => setActiveAdminTab('leituras')}><BookOpen size={16} /> Leituras</button>
             <button className={activeAdminTab === 'contacts' ? 'active' : ''} onClick={() => setActiveAdminTab('contacts')}><Phone size={16} /> Contatos</button>
+            {userRole === 'admin' && (
+              <button
+                className={activeAdminTab === 'system' ? 'active' : ''}
+                onClick={() => setActiveAdminTab('system')}
+                style={{ marginLeft: 'auto', backgroundColor: '#f0f0f0' }}
+              >
+                <Settings size={16} /> Sistema
+              </button>
+            )}
           </nav>
         </div>
         <button onClick={onClose} className="close-btn"><X size={24} /></button>
@@ -111,7 +120,7 @@ const AdminPanel = ({ data, onClose, userRole }) => {
           {activeAdminTab === 'eventos' && (
             <div className="admin-section">
               <h3>Adicionar Evento</h3>
-              <form onSubmit={(e) => { e.preventDefault(); addItem('eventos', eventForm); setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '' }); }}>
+              <form onSubmit={async (e) => { e.preventDefault(); await addItem('eventos', eventForm); setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '' }); }}>
                 <div className="form-group">
                   <input type="text" placeholder="Título do Evento" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} required />
                 </div>
@@ -181,6 +190,37 @@ const AdminPanel = ({ data, onClose, userRole }) => {
               </div>
               <button type="submit" className="submit-btn"><PlusCircle size={18} /> Adicionar</button>
             </form>
+          )}
+
+          {activeAdminTab === 'system' && userRole === 'admin' && (
+            <div className="admin-section">
+              <h3>Configurações do Sistema</h3>
+              <div className="system-card" style={{ padding: '2rem', background: '#f9f9f9', borderRadius: '8px', border: '1px solid #ddd' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4>Modo Manutenção</h4>
+                    <p style={{ fontSize: '0.8rem', color: '#666' }}>Quando ativado, os visitantes verão uma tela de manutenção.</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const newStatus = !data.isMaintenanceMode;
+                      await data.updateConfig('maintenance_mode', newStatus);
+                    }}
+                    style={{
+                      padding: '0.6rem 1.2rem',
+                      backgroundColor: data.isMaintenanceMode ? '#cc0000' : '#27ae60',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {data.isMaintenanceMode ? 'DESATIVAR' : 'ATIVAR'}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Removed properties form section */}

@@ -8,6 +8,7 @@ import LeituraFeed from './components/LeituraFeed';
 import EventosFeed from './components/EventosFeed';
 import AdminPanel from './components/AdminPanel';
 import LoginForm from './components/LoginForm';
+import MaintenanceScreen from './components/MaintenanceScreen';
 import { useData } from './hooks/useData';
 import { Settings, LogOut } from 'lucide-react';
 
@@ -16,9 +17,10 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(''); // 'admin' or 'editor'
+  const [maintenanceBypass, setMaintenanceBypass] = useState(false);
   const data = useData();
 
-  const { news, concursos, contacts, properties, leituras, editors, eventos, loading } = data;
+  const { news, concursos, contacts, properties, leituras, editors, eventos, loading, isMaintenanceMode } = data;
 
   // Persistence for Auth
   useEffect(() => {
@@ -46,6 +48,17 @@ function App() {
   };
 
   if (loading) return <div className="loading">Carregando Hermeneuta...</div>;
+
+  // Maintenance Bypass Check (Admin can enter even in maintenance)
+  if (isMaintenanceMode && !maintenanceBypass && !isAuthenticated) {
+    return <MaintenanceScreen onAdminLogin={(pass) => {
+      if (pass === 'admin123') { // Temporary simple check
+        setMaintenanceBypass(true);
+      } else {
+        alert("Senha incorreta");
+      }
+    }} />;
+  }
 
   return (
     <div className="app-wrapper">
