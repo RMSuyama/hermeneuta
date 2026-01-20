@@ -451,34 +451,34 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
 
                 {/* Edit buttons for all content types (admin only) */}
                 {activeAdminTab === 'editors' && userRole === 'admin' && (
-                  <button onClick={() => handleEditEditor(item)} className="edit-btn" title="Editar" style={{ marginRight: '0.5rem' }}>
-                    ✏️
+                  <button onClick={() => handleEditEditor(item)} className="edit-btn" title="Editar">
+                    Editar
                   </button>
                 )}
                 {activeAdminTab === 'eventos' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('eventos', item)} className="edit-btn" title="Editar" style={{ marginRight: '0.5rem' }}>
-                    ✏️
+                  <button onClick={() => handleEdit('eventos', item)} className="edit-btn" title="Editar">
+                    Editar
                   </button>
                 )}
                 {activeAdminTab === 'leituras' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('leituras', item)} className="edit-btn" title="Editar" style={{ marginRight: '0.5rem' }}>
-                    ✏️
+                  <button onClick={() => handleEdit('leituras', item)} className="edit-btn" title="Editar">
+                    Editar
                   </button>
                 )}
                 {activeAdminTab === 'contacts' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('contacts', item)} className="edit-btn" title="Editar" style={{ marginRight: '0.5rem' }}>
-                    ✏️
+                  <button onClick={() => handleEdit('contacts', item)} className="edit-btn" title="Editar">
+                    Editar
                   </button>
                 )}
                 {activeAdminTab === 'concursos' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('concursos', item)} className="edit-btn" title="Editar" style={{ marginRight: '0.5rem' }}>
-                    ✏️
+                  <button onClick={() => handleEdit('concursos', item)} className="edit-btn" title="Editar">
+                    Editar
                   </button>
                 )}
                 {/* Edit button for news (admin or own article) */}
                 {activeAdminTab === 'news' && (userRole === 'admin' || item.author_id === data.currentUserId) && (
-                  <button onClick={() => handleEditNews(item)} className="edit-btn" title="Editar" style={{ marginRight: '0.5rem' }}>
-                    ✏️
+                  <button onClick={() => handleEditNews(item)} className="edit-btn" title="Editar">
+                    Editar
                   </button>
                 )}
                 {userRole === 'admin' && (
@@ -515,6 +515,25 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
         .author-edit { margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
         .author-edit label { margin: 0; }
         .author-select { padding: 0.2rem; font-size: 0.7rem; width: auto; }
+          .edit-btn { 
+            background: var(--color-primary); 
+            border: none; 
+            color: white; 
+            cursor: pointer; 
+            padding: 0.5rem 1rem; 
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 0;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-right: 0.5rem;
+          }
+          .edit-btn:hover { 
+            background: var(--color-secondary);
+          }
         .del-btn { background: none; border: none; color: #cc0000; cursor: pointer; opacity: 0.6; padding: 0.5rem; }
         .del-btn:hover { opacity: 1; background: rgba(204, 0, 0, 0.1); border-radius: 4px; }
         @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
