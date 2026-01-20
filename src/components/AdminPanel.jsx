@@ -405,7 +405,12 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
           <h3>Gerenciar {activeAdminTab === 'news' ? 'Notícias' : activeAdminTab}</h3>
           <div className="items-list-admin">
             {(data[activeAdminTab] || [])
-              .sort((a, b) => (b.id || 0) - (a.id || 0)) // Newest first
+              .sort((a, b) => {
+                // Sort by created_at if available, otherwise by id
+                const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+                const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+                return dateB - dateA; // Newest first
+              })
               .map(item => (
                 <div key={item?.id || Math.random()} className="admin-item-row">
                   {/* Image Verification Thumbnail */}
