@@ -14,7 +14,7 @@ const INITIAL_EDITORS = [
         bio: 'Compromisso com a informação jurídica de qualidade no Vale do Ribeira.',
         avatar: '',
         username: 'admin',
-        password: '123'
+        password: 'admin123'
     }
 ];
 

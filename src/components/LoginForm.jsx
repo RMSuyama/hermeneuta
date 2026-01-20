@@ -10,6 +10,7 @@ const LoginForm = ({ onLogin, editors = [] }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError('');
 
     // Admin Master Access
     if (username === 'admin' && password === 'admin123') {
@@ -17,20 +18,14 @@ const LoginForm = ({ onLogin, editors = [] }) => {
       return;
     }
 
-    // Default legacy access (if needed, or remove)
-    if (password === 'redator123' && username === '') {
-      // Legacy fallback or maybe remove this to force username usage
-    }
-
-    // Check against registered editors
+    // Check against registered editors (from Supabase)
     const foundEditor = editors.find(ed => ed.username === username && ed.password === password);
 
     if (foundEditor) {
-      onLogin('editor');
+      onLogin(foundEditor.username === 'admin' ? 'admin' : 'editor');
     } else {
-      setError('Credenciais inválidas. Tente novamente.');
+      setError('Usuário ou senha incorretos. Verifique os dados e tente novamente.');
       setPassword('');
-      // Don't clear username so they can retry password
     }
   };
 
@@ -53,7 +48,7 @@ const LoginForm = ({ onLogin, editors = [] }) => {
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => { setUsername(e.target.value); setError(''); }}
               placeholder="Usuário (Login)"
               className="with-icon"
               autoFocus
@@ -67,7 +62,7 @@ const LoginForm = ({ onLogin, editors = [] }) => {
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setError(''); }}
               placeholder="Senha"
               className="with-icon"
             />
