@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 const AdminPanel = ({ data, onClose, userRole }) => {
   const [activeAdminTab, setActiveAdminTab] = useState('news');
-  const { news, concursos, contacts, properties, leituras, editors, eventos, addItem, deleteItem, updateItem } = data;
+  const { news = [], concursos = [], contacts = [], leituras = [], editors = [], eventos = [], addItem, deleteItem, updateItem } = data;
 
   const [newsForm, setNewsForm] = useState({ title: '', category: 'JUDICIÁRIO', content: '', citation: '', author: '', authorId: '', image: '' });
   const [eventForm, setEventForm] = useState({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '' });
@@ -23,9 +23,9 @@ const AdminPanel = ({ data, onClose, userRole }) => {
   };
 
   const handleAuthorUpdate = (itemId, newAuthorId) => {
-    const selectedEditor = editors.find(ed => ed.id == newAuthorId);
+    const selectedEditor = editors?.find(ed => ed.id == newAuthorId);
     if (selectedEditor) {
-      updateItem('news', itemId, { authorId: newAuthorId, author: selectedEditor.name });
+      updateItem('news', itemId, { author_id: newAuthorId, author: selectedEditor.name });
     }
   };
 
@@ -75,7 +75,7 @@ const AdminPanel = ({ data, onClose, userRole }) => {
                   <select
                     value={newsForm.authorId}
                     onChange={e => {
-                      const selectedEditor = editors.find(ed => ed.id == e.target.value);
+                      const selectedEditor = editors?.find(ed => ed.id == e.target.value);
                       setNewsForm({ ...newsForm, authorId: e.target.value, author: selectedEditor ? selectedEditor.name : '' });
                     }}
                   >
@@ -143,7 +143,7 @@ const AdminPanel = ({ data, onClose, userRole }) => {
               </form>
 
               <div className="admin-list">
-                {eventos.map(item => (
+                {eventos?.map(item => (
                   <div key={item.id} className="admin-item">
                     <span>{item.title} ({item.date})</span>
                     {userRole === 'admin' && (
@@ -247,7 +247,7 @@ const AdminPanel = ({ data, onClose, userRole }) => {
                     <div className="author-edit">
                       <label>Autor:</label>
                       <select
-                        value={item.authorId || ''}
+                        value={item.author_id || item.authorId || ''}
                         onChange={(e) => handleAuthorUpdate(item.id, e.target.value)}
                         className="author-select"
                       >
@@ -259,7 +259,7 @@ const AdminPanel = ({ data, onClose, userRole }) => {
                     </div>
                   )}
                   {/* Show Author Name for non-admins or if needed */}
-                  {(!userRole === 'admin' || activeAdminTab !== 'news') && item.author && (
+                  {(userRole !== 'admin' || activeAdminTab !== 'news') && item.author && (
                     <span className="author-display">Por: {item.author}</span>
                   )}
                   {/* Show Username for editors in list */}
