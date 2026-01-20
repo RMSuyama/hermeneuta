@@ -26,8 +26,13 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
 
   const handleAdd = async (key, form, resetForm) => {
     if (editingNews && key === 'news') {
-      // Update existing news
-      await updateItem('news', editingNews.id, form);
+      // Update existing news - map authorId to author_id for Supabase
+      const updateData = { ...form };
+      if (updateData.authorId) {
+        updateData.author_id = updateData.authorId;
+        delete updateData.authorId;
+      }
+      await updateItem('news', editingNews.id, updateData);
       setEditingNews(null);
     } else if (editingEditor && key === 'editors') {
       // Update existing editor (only send password if it was changed)
@@ -302,19 +307,8 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                   <input type="text" placeholder="Link (Inscrição/Mais info)" value={eventForm.link} onChange={e => setEventForm({ ...eventForm, link: e.target.value })} />
                 </div>
                 <textarea placeholder="Descrição" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} required className="full-width"></textarea>
-                <button type="submit" className="add-btn">{editingEvento ? 'Salvar Alterações' : 'Publicar Evento'}</button>
+                <button type="submit" className="submit-btn"><PlusCircle size={18} /> {editingEvento ? 'Salvar Alterações' : 'Publicar Evento'}</button>
               </form>
-
-              <div className="admin-list">
-                {eventos?.map(item => (
-                  <div key={item?.id || Math.random()} className="admin-item">
-                    <span>{item.title} ({item.date})</span>
-                    {userRole === 'admin' && (
-                      <button onClick={() => deleteItem('eventos', item.id)} className="delete-btn">Excluir</button>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
