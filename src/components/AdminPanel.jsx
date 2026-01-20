@@ -9,7 +9,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
 
   const [newsForm, setNewsForm] = useState({ title: '', category: 'JUDICIÁRIO', content: '', citation: '', author: '', authorId: '', image: '' });
   const [editingNews, setEditingNews] = useState(null);
-  const [eventForm, setEventForm] = useState({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '' });
+  const [eventForm, setEventForm] = useState({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '', image: '' });
   // Updated editorForm to include username and password
   const [editorForm, setEditorForm] = useState({ name: '', role: '', bio: '', avatar: '', username: '', password: '' });
   const [editingEditor, setEditingEditor] = useState(null);
@@ -72,7 +72,8 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
           location: item.location || '',
           description: item.description || '',
           type: item.type || 'PRESENCIAL',
-          link: item.link || ''
+          link: item.link || '',
+          image: item.image || ''
         });
         setActiveAdminTab('eventos');
         break;
@@ -117,7 +118,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
     switch (type) {
       case 'eventos':
         setEditingEvento(null);
-        setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '' });
+        setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '', image: '' });
         break;
       case 'leituras':
         setEditingLeitura(null);
@@ -288,7 +289,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                   <button type="button" onClick={() => handleCancelEditUniversal('eventos')} style={{ marginLeft: '1rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Cancelar</button>
                 </div>
               )}
-              <form onSubmit={async (e) => { e.preventDefault(); await handleAdd('eventos', eventForm, () => setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '' })); }}>
+              <form onSubmit={async (e) => { e.preventDefault(); await handleAdd('eventos', eventForm, () => setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '', image: '' })); }}>
                 <div className="form-group">
                   <input type="text" placeholder="Título do Evento" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} required />
                 </div>
@@ -305,6 +306,9 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                     <option value="WORKSHOP">Workshop</option>
                   </select>
                   <input type="text" placeholder="Link (Inscrição/Mais info)" value={eventForm.link} onChange={e => setEventForm({ ...eventForm, link: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <input type="text" placeholder="URL da Imagem (opcional)" value={eventForm.image} onChange={e => setEventForm({ ...eventForm, image: e.target.value })} />
                 </div>
                 <textarea placeholder="Descrição" value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} required className="full-width"></textarea>
                 <button type="submit" className="submit-btn"><PlusCircle size={18} /> {editingEvento ? 'Salvar Alterações' : 'Publicar Evento'}</button>

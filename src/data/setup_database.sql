@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS eventos (
   description TEXT,
   type TEXT DEFAULT 'PRESENCIAL',
   link TEXT,
+  image TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
