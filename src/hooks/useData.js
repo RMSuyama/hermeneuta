@@ -135,7 +135,14 @@ export const useData = () => {
 
     const deleteItem = async (key, id) => {
         try {
-            const tableMap = { news: 'news', eventos: 'eventos', editors: 'editors', contacts: 'contacts' };
+            const tableMap = {
+                news: 'news',
+                eventos: 'eventos',
+                editors: 'editors',
+                contacts: 'contacts',
+                leituras: 'leituras',
+                concursos: 'concursos'
+            };
             const tableName = tableMap[key];
             if (!tableName) {
                 setData(prev => ({ ...prev, [key]: prev[key].filter(i => i.id !== id) }));
@@ -151,7 +158,14 @@ export const useData = () => {
 
     const updateItem = async (key, id, updatedFields) => {
         try {
-            const tableMap = { news: 'news', eventos: 'eventos', editors: 'editors', contacts: 'contacts' };
+            const tableMap = {
+                news: 'news',
+                eventos: 'eventos',
+                editors: 'editors',
+                contacts: 'contacts',
+                leituras: 'leituras',
+                concursos: 'concursos'
+            };
             const tableName = tableMap[key];
             if (!tableName) {
                 setData(prev => ({ ...prev, [key]: prev[key].map(i => i.id === id ? { ...i, ...updatedFields } : i) }));
