@@ -18,32 +18,29 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(''); // 'admin' or 'editor'
   const [maintenanceBypass, setMaintenanceBypass] = useState(false);
-  const data = useData();
+  const data = useData() || {};
+  const {
+    news = [],
+    concursos = [],
+    contacts = [],
+    properties = [],
+    leituras = [],
+    editors = [],
+    eventos = [],
+    loading = true,
+    isMaintenanceMode = false
+  } = data;
 
-  const { news, concursos, contacts, properties, leituras, editors, eventos, loading, isMaintenanceMode } = data;
-
-  // Persistence for Auth
-  useEffect(() => {
-    const session = localStorage.getItem('hermeneuta_session');
-    const role = localStorage.getItem('hermeneuta_role');
-    if (session === 'active') {
-      setIsAuthenticated(true);
-      if (role) setUserRole(role);
-    }
-  }, []);
+  console.log("App Render - Auth:", isAuthenticated, "Role:", userRole, "Loading:", loading);
 
   const handleLogin = (role = 'editor') => {
     setIsAuthenticated(true);
     setUserRole(role);
-    localStorage.setItem('hermeneuta_session', 'active');
-    localStorage.setItem('hermeneuta_role', role);
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserRole('');
-    localStorage.removeItem('hermeneuta_session');
-    localStorage.removeItem('hermeneuta_role');
     setShowAdmin(false);
   };
 
@@ -101,7 +98,10 @@ function App() {
             <AdminPanel
               data={data}
               userRole={userRole}
-              onClose={() => setShowAdmin(false)}
+              onClose={() => {
+                console.log("Closing AdminPanel");
+                setShowAdmin(false);
+              }}
             />
           )
         ) : (

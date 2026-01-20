@@ -42,12 +42,6 @@ const NewsFeed = ({ news, editors }) => {
             </div>
           )}
 
-          {selectedArticle.citation && (
-            <blockquote className="article-citation">
-              "{selectedArticle.citation}"
-            </blockquote>
-          )}
-
           <div className="article-body">
             {selectedArticle.content ? (
               selectedArticle.content.split('\n').map((paragraph, idx) => (
@@ -57,6 +51,12 @@ const NewsFeed = ({ news, editors }) => {
               <p className="fallback-text">{selectedArticle.excerpt}</p>
             )}
           </div>
+
+          {selectedArticle.citation && (
+            <div className="article-citation">
+              <strong>Fonte:</strong> {selectedArticle.citation}
+            </div>
+          )}
 
           <div className="author-profile">
             <div className="author-avatar">
@@ -181,15 +181,20 @@ const NewsFeed = ({ news, editors }) => {
           }
 
           .article-citation {
-             font-family: var(--font-serif);
+             font-family: var(--font-sans);
              font-style: italic;
-             font-size: 1rem;
-             color: var(--color-primary);
-             border-left: 4px solid var(--color-secondary);
-             padding: 1rem 2rem;
-             margin: 0 0 2rem 0;
-             background: rgba(212, 163, 115, 0.1);
-             text-indent: 0;
+             font-size: 0.85rem;
+             color: var(--color-text-muted);
+             border-top: 1px solid var(--color-border);
+             padding: 1rem 0;
+             margin: 2rem 0 3rem 0;
+             text-align: left;
+          }
+
+          .article-citation strong {
+            font-weight: 700;
+            color: var(--color-primary);
+            font-style: normal;
           }
 
           .article-body {
