@@ -54,7 +54,10 @@ const NewsFeed = ({ news, editors }) => {
 
           {selectedArticle.citation && (
             <div className="article-citation">
-              <strong>Fonte:</strong> {selectedArticle.citation}
+              <strong>Fonte:</strong>
+              {selectedArticle.citation.split('\n').map((line, idx) => (
+                line.trim() && <div key={idx} style={{ marginTop: idx > 0 ? '0.5rem' : 0 }}>{line}</div>
+              ))}
             </div>
           )}
 
