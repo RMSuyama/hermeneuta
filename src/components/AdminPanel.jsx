@@ -404,84 +404,86 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
         <section className="manage-list">
           <h3>Gerenciar {activeAdminTab === 'news' ? 'Notícias' : activeAdminTab}</h3>
           <div className="items-list-admin">
-            {(data[activeAdminTab] || []).map(item => (
-              <div key={item?.id || Math.random()} className="admin-item-row">
-                {/* Image Verification Thumbnail */}
-                {(item.image || item.cover || item.avatar) && (
-                  <div className="item-thumb">
-                    <img src={item.image || item.cover || item.avatar} alt="thumb" onError={(e) => e.target.style.border = '2px solid red'} />
-                  </div>
-                )}
-
-                <div className="item-info">
-                  <span>{item?.category || item?.role || item?.tribunal || item?.type || item?.comarca}</span>
-                  <h4>{item?.title || item?.name || item?.processo || item?.cargo || item?.setor || item?.username}</h4>
-
-                  {/* Author Editing for Admins */}
-                  {userRole === 'admin' && activeAdminTab === 'news' && (
-                    <div className="author-edit">
-                      <label>Autor:</label>
-                      <select
-                        value={item.author_id || item.authorId || ''}
-                        onChange={(e) => handleAuthorUpdate(item.id, e.target.value)}
-                        className="author-select"
-                      >
-                        <option value="">Selecione...</option>
-                        {editors?.map(editor => (
-                          <option key={editor.id} value={editor.id}>{editor.name}</option>
-                        ))}
-                      </select>
+            {(data[activeAdminTab] || [])
+              .sort((a, b) => (b.id || 0) - (a.id || 0)) // Newest first
+              .map(item => (
+                <div key={item?.id || Math.random()} className="admin-item-row">
+                  {/* Image Verification Thumbnail */}
+                  {(item.image || item.cover || item.avatar) && (
+                    <div className="item-thumb">
+                      <img src={item.image || item.cover || item.avatar} alt="thumb" onError={(e) => e.target.style.border = '2px solid red'} />
                     </div>
                   )}
-                  {/* Show Author Name for non-admins or if needed */}
-                  {(userRole !== 'admin' || activeAdminTab !== 'news') && item.author && (
-                    <span className="author-display">Por: {item.author}</span>
+
+                  <div className="item-info">
+                    <span>{item?.category || item?.role || item?.tribunal || item?.type || item?.comarca}</span>
+                    <h4>{item?.title || item?.name || item?.processo || item?.cargo || item?.setor || item?.username}</h4>
+
+                    {/* Author Editing for Admins */}
+                    {userRole === 'admin' && activeAdminTab === 'news' && (
+                      <div className="author-edit">
+                        <label>Autor:</label>
+                        <select
+                          value={item.author_id || item.authorId || ''}
+                          onChange={(e) => handleAuthorUpdate(item.id, e.target.value)}
+                          className="author-select"
+                        >
+                          <option value="">Selecione...</option>
+                          {editors?.map(editor => (
+                            <option key={editor.id} value={editor.id}>{editor.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {/* Show Author Name for non-admins or if needed */}
+                    {(userRole !== 'admin' || activeAdminTab !== 'news') && item.author && (
+                      <span className="author-display">Por: {item.author}</span>
+                    )}
+                    {/* Show Username for editors in list */}
+                    {activeAdminTab === 'editors' && item.username && (
+                      <span style={{ fontSize: '0.7em', color: '#555' }}>Login: {item.username}</span>
+                    )}
+                  </div>
+
+                  {/* Edit buttons for all content types (admin only) */}
+                  {activeAdminTab === 'editors' && userRole === 'admin' && (
+                    <button onClick={() => handleEditEditor(item)} className="edit-btn" title="Editar">
+                      Editar
+                    </button>
                   )}
-                  {/* Show Username for editors in list */}
-                  {activeAdminTab === 'editors' && item.username && (
-                    <span style={{ fontSize: '0.7em', color: '#555' }}>Login: {item.username}</span>
+                  {activeAdminTab === 'eventos' && userRole === 'admin' && (
+                    <button onClick={() => handleEdit('eventos', item)} className="edit-btn" title="Editar">
+                      Editar
+                    </button>
+                  )}
+                  {activeAdminTab === 'leituras' && userRole === 'admin' && (
+                    <button onClick={() => handleEdit('leituras', item)} className="edit-btn" title="Editar">
+                      Editar
+                    </button>
+                  )}
+                  {activeAdminTab === 'contacts' && userRole === 'admin' && (
+                    <button onClick={() => handleEdit('contacts', item)} className="edit-btn" title="Editar">
+                      Editar
+                    </button>
+                  )}
+                  {activeAdminTab === 'concursos' && userRole === 'admin' && (
+                    <button onClick={() => handleEdit('concursos', item)} className="edit-btn" title="Editar">
+                      Editar
+                    </button>
+                  )}
+                  {/* Edit button for news (admin or own article) */}
+                  {activeAdminTab === 'news' && (userRole === 'admin' || item.author_id === data.currentUserId) && (
+                    <button onClick={() => handleEditNews(item)} className="edit-btn" title="Editar">
+                      Editar
+                    </button>
+                  )}
+                  {userRole === 'admin' && (
+                    <button onClick={() => deleteItem(activeAdminTab, item.id)} className="del-btn" title="Excluir">
+                      <Trash2 size={16} />
+                    </button>
                   )}
                 </div>
-
-                {/* Edit buttons for all content types (admin only) */}
-                {activeAdminTab === 'editors' && userRole === 'admin' && (
-                  <button onClick={() => handleEditEditor(item)} className="edit-btn" title="Editar">
-                    Editar
-                  </button>
-                )}
-                {activeAdminTab === 'eventos' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('eventos', item)} className="edit-btn" title="Editar">
-                    Editar
-                  </button>
-                )}
-                {activeAdminTab === 'leituras' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('leituras', item)} className="edit-btn" title="Editar">
-                    Editar
-                  </button>
-                )}
-                {activeAdminTab === 'contacts' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('contacts', item)} className="edit-btn" title="Editar">
-                    Editar
-                  </button>
-                )}
-                {activeAdminTab === 'concursos' && userRole === 'admin' && (
-                  <button onClick={() => handleEdit('concursos', item)} className="edit-btn" title="Editar">
-                    Editar
-                  </button>
-                )}
-                {/* Edit button for news (admin or own article) */}
-                {activeAdminTab === 'news' && (userRole === 'admin' || item.author_id === data.currentUserId) && (
-                  <button onClick={() => handleEditNews(item)} className="edit-btn" title="Editar">
-                    Editar
-                  </button>
-                )}
-                {userRole === 'admin' && (
-                  <button onClick={() => deleteItem(activeAdminTab, item.id)} className="del-btn" title="Excluir">
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
+              ))}
           </div>
         </section>
       </div>
