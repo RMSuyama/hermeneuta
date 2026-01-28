@@ -12,8 +12,10 @@ import MaintenanceScreen from './components/MaintenanceScreen';
 import { useData } from './hooks/useData';
 import { Settings, LogOut } from 'lucide-react';
 
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+
 function App() {
-  const [activeTab, setActiveTab] = useState('news');
   const [showAdmin, setShowAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(''); // 'admin' or 'editor'
@@ -30,6 +32,8 @@ function App() {
     loading = true,
     isMaintenanceMode = false
   } = data;
+
+  const location = useLocation();
 
   console.log("App Render - Auth:", isAuthenticated, "Role:", userRole, "Loading:", loading);
 
@@ -88,7 +92,7 @@ function App() {
         </div>
       </header>
 
-      {!showAdmin && <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />}
+      {!showAdmin && <Navigation />}
 
       <main className="container">
         {showAdmin ? (
@@ -105,20 +109,23 @@ function App() {
             />
           )
         ) : (
-          <>
-            {activeTab === 'news' && <NewsFeed news={news} editors={editors} />}
-            {activeTab === 'eventos' && <EventosFeed eventos={eventos} />}
-            {activeTab === 'concursos' && <ConcursosFeed concursos={concursos} />}
-            {activeTab === 'links' && <LinksUteisFeed />}
-            {activeTab === 'leituras' && <LeituraFeed leituras={leituras} />}
-            {activeTab === 'contacts' && <ContactDirectory contacts={contacts} />}
-            {activeTab === 'about' && (
+          <Routes>
+            <Route path="/" element={<NewsFeed news={news} editors={editors} isAuthenticated={isAuthenticated} />} />
+            <Route path="/news/:id" element={<NewsFeed news={news} editors={editors} isAuthenticated={isAuthenticated} />} />
+            <Route path="/eventos" element={<EventosFeed eventos={eventos} isAuthenticated={isAuthenticated} />} />
+            <Route path="/eventos/:id" element={<EventosFeed eventos={eventos} isAuthenticated={isAuthenticated} />} />
+            <Route path="/concursos" element={<ConcursosFeed concursos={concursos} />} />
+            <Route path="/links" element={<LinksUteisFeed />} />
+            <Route path="/leituras" element={<LeituraFeed leituras={leituras} />} />
+            <Route path="/contacts" element={<ContactDirectory contacts={contacts} />} />
+            <Route path="/about" element={
               <div className="about-section">
                 <h2>Sobre o Hermeneuta</h2>
                 <p>O Hermeneuta é o portal definitivo para o profissional do Direito no Vale do Ribeira. Unindo informação de qualidade, atualizações legislativas, oportunidades de carreira e um guia prático de contatos.</p>
               </div>
-            )}
-          </>
+            } />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         )}
       </main>
 

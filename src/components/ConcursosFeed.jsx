@@ -1,9 +1,22 @@
 import React from 'react';
 import { mockConcursos } from '../data/mockConcursos';
 import { motion } from 'framer-motion';
-import { ExternalLink, Briefcase, GraduationCap } from 'lucide-react';
+import { ExternalLink, Briefcase, GraduationCap, Share2 } from 'lucide-react';
 
 const ConcursosFeed = () => {
+  const handleShare = () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Concursos - Hermeneuta',
+        url: url
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copiado para a área de transferência!');
+    }
+  };
+
   const getLevelColor = (level) => {
     switch (level) {
       case 'MUNICIPAL': return 'var(--color-secondary)';
@@ -20,6 +33,9 @@ const ConcursosFeed = () => {
         <p className="page-intro">
           Acompanhe as principais aberturas de concursos públicos para a área jurídica e administrativa no Vale do Ribeira, SP e Federal em formato de lista simplificada.
         </p>
+        <button onClick={handleShare} className="share-btn-header" title="Compartilhar esta página">
+          <Share2 size={18} /> Compartilhar Página
+        </button>
       </div>
 
       <div className="concursos-list">
@@ -94,6 +110,27 @@ const ConcursosFeed = () => {
         .page-intro {
           color: var(--color-text-muted);
           font-size: 1.1rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .share-btn-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .share-btn-header:hover {
+            background: var(--color-primary);
+            color: white;
         }
 
         .concursos-list {

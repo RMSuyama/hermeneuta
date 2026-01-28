@@ -1,106 +1,171 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, User, ExternalLink, X } from 'lucide-react';
+import { BookOpen, User, ExternalLink, X, Share2 } from 'lucide-react';
 
 const LeituraFeed = ({ leituras }) => {
-    const [selectedBook, setSelectedBook] = useState(null);
+  const [selectedBook, setSelectedBook] = useState(null);
 
-    if (!leituras || leituras.length === 0) return <div className="leitura-feed">Nenhuma indicação de leitura.</div>;
+  const handleShare = () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Indicações de Leitura - Hermeneuta',
+        url: url
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copiado para a área de transferência!');
+    }
+  };
 
-    return (
-        <div className="leitura-feed">
-            <div className="books-grid">
-                {leituras.map((book, idx) => (
-                    <motion.div
-                        key={book.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 * idx }}
-                        className="book-card"
-                    >
-                        <div className="book-cover-container" onClick={() => setSelectedBook(book)}>
-                            {book.cover ? (
-                                <img src={book.cover} alt={book.title} className="book-cover" />
-                            ) : (
-                                <div className="book-cover-placeholder">
-                                    <BookOpen size={48} />
-                                    <span>Sem Capa</span>
-                                </div>
-                            )}
-                            <div className="hover-overlay">
-                                <span>Ver Detalhes</span>
-                            </div>
-                        </div>
+  if (!leituras || leituras.length === 0) return <div className="leitura-feed">Nenhuma indicação de leitura.</div>;
 
-                        <div className="book-info">
-                            <span className="book-category">{book.category || 'Geral'}</span>
-                            <h3 onClick={() => setSelectedBook(book)}>{book.title}</h3>
-                            <p className="book-author">por {book.author}</p>
+  return (
+    <div className="leitura-feed">
+      <div className="section-header">
+        <h2 className="section-title">Indicações & Doutrina</h2>
+        <div className="header-actions">
+          <p>Sugestões de leitura para aprofundamento jurídico e cultural.</p>
+          <button onClick={handleShare} className="share-btn-header" title="Compartilhar esta página">
+            <Share2 size={16} /> Compartilhar
+          </button>
+        </div>
+      </div>
 
-                            <div className="book-actions">
-                                <button className="details-btn" onClick={() => setSelectedBook(book)}>Sinopse</button>
-                                {book.link && book.link !== '#' && (
-                                    <a href={book.link} target="_blank" rel="noopener noreferrer" className="buy-btn">
-                                        <ExternalLink size={14} /> Link
-                                    </a>
-                                )}
-                            </div>
-                        </div>
-                    </motion.div>
-                ))}
+      <div className="books-grid">
+        {leituras.map((book, idx) => (
+          <motion.div
+            key={book.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 * idx }}
+            className="book-card"
+          >
+            <div className="book-cover-container" onClick={() => setSelectedBook(book)}>
+              {book.cover ? (
+                <img src={book.cover} alt={book.title} className="book-cover" />
+              ) : (
+                <div className="book-cover-placeholder">
+                  <BookOpen size={48} />
+                  <span>Sem Capa</span>
+                </div>
+              )}
+              <div className="hover-overlay">
+                <span>Ver Detalhes</span>
+              </div>
             </div>
 
-            <AnimatePresence>
-                {selectedBook && (
-                    <motion.div
-                        className="modal-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setSelectedBook(null)}
-                    >
-                        <motion.div
-                            className="book-modal"
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <button className="close-modal" onClick={() => setSelectedBook(null)}><X size={24} /></button>
+            <div className="book-info">
+              <span className="book-category">{book.category || 'Geral'}</span>
+              <h3 onClick={() => setSelectedBook(book)}>{book.title}</h3>
+              <p className="book-author">por {book.author}</p>
 
-                            <div className="modal-content">
-                                <div className="modal-cover">
-                                    {selectedBook.cover ? (
-                                        <img src={selectedBook.cover} alt={selectedBook.title} />
-                                    ) : (
-                                        <div className="placeholder-large"><BookOpen size={64} /></div>
-                                    )}
-                                </div>
-
-                                <div className="modal-details">
-                                    <span className="modal-category">{selectedBook.category || 'Leitura Recomendada'}</span>
-                                    <h2>{selectedBook.title}</h2>
-                                    <h4 className="modal-author"><User size={16} /> {selectedBook.author}</h4>
-
-                                    <div className="modal-scroll-area">
-                                        <p className="modal-synopsis">{selectedBook.synopsis || selectedBook.description}</p>
-                                    </div>
-
-                                    {selectedBook.link && selectedBook.link !== '#' && (
-                                        <a href={selectedBook.link} target="_blank" rel="noopener noreferrer" className="modal-link-btn">
-                                            Acessar / Comprar Livro
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
+              <div className="book-actions">
+                <button className="details-btn" onClick={() => setSelectedBook(book)}>Sinopse</button>
+                {book.link && book.link !== '#' && (
+                  <a href={book.link} target="_blank" rel="noopener noreferrer" className="buy-btn">
+                    <ExternalLink size={14} /> Link
+                  </a>
                 )}
-            </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
 
-            <style jsx>{`
+      <AnimatePresence>
+        {selectedBook && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedBook(null)}
+          >
+            <motion.div
+              className="book-modal"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="close-modal" onClick={() => setSelectedBook(null)}><X size={24} /></button>
+
+              <div className="modal-content">
+                <div className="modal-cover">
+                  {selectedBook.cover ? (
+                    <img src={selectedBook.cover} alt={selectedBook.title} />
+                  ) : (
+                    <div className="placeholder-large"><BookOpen size={64} /></div>
+                  )}
+                </div>
+
+                <div className="modal-details">
+                  <span className="modal-category">{selectedBook.category || 'Leitura Recomendada'}</span>
+                  <h2>{selectedBook.title}</h2>
+                  <h4 className="modal-author"><User size={16} /> {selectedBook.author}</h4>
+
+                  <div className="modal-scroll-area">
+                    <p className="modal-synopsis">{selectedBook.synopsis || selectedBook.description}</p>
+                  </div>
+
+                  {selectedBook.link && selectedBook.link !== '#' && (
+                    <a href={selectedBook.link} target="_blank" rel="noopener noreferrer" className="modal-link-btn">
+                      Acessar / Comprar Livro
+                    </a>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <style jsx>{`
         .leitura-feed {
           padding: 2rem 0;
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-actions p {
+             color: var(--color-text-muted);
+        }
+
+        .share-btn-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .share-btn-header:hover {
+            background: var(--color-primary);
+            color: white;
         }
 
         .books-grid {
@@ -360,8 +425,8 @@ const LeituraFeed = ({ leituras }) => {
             .modal-author { justify-content: center; }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default LeituraFeed;

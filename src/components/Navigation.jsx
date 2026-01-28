@@ -1,15 +1,16 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { Newspaper, Phone, Info, GraduationCap, Link, Gavel, BookOpen, Calendar } from 'lucide-react';
 
-const Navigation = ({ activeTab, setActiveTab }) => {
+const Navigation = () => {
   const links = [
-    { id: 'news', label: 'Notícias', icon: <Newspaper size={18} /> },
-    { id: 'concursos', label: 'Concursos', icon: <GraduationCap size={18} /> },
-    { id: 'eventos', label: 'Eventos', icon: <Calendar size={18} /> },
-    { id: 'links', label: 'Links Úteis', icon: <Link size={18} /> },
-    { id: 'leituras', label: 'Leituras', icon: <BookOpen size={18} /> },
-    { id: 'contacts', label: 'Contatos', icon: <Phone size={18} /> },
-    { id: 'about', label: 'Sobre', icon: <Info size={18} /> },
+    { id: 'news', path: '/', label: 'Notícias', icon: <Newspaper size={18} /> },
+    { id: 'concursos', path: '/concursos', label: 'Concursos', icon: <GraduationCap size={18} /> },
+    { id: 'eventos', path: '/eventos', label: 'Eventos', icon: <Calendar size={18} /> },
+    { id: 'links', path: '/links', label: 'Links Úteis', icon: <Link size={18} /> },
+    { id: 'leituras', path: '/leituras', label: 'Leituras', icon: <BookOpen size={18} /> },
+    { id: 'contacts', path: '/contacts', label: 'Contatos', icon: <Phone size={18} /> },
+    { id: 'about', path: '/about', label: 'Sobre', icon: <Info size={18} /> },
   ];
 
   return (
@@ -17,14 +18,14 @@ const Navigation = ({ activeTab, setActiveTab }) => {
       <div className="container">
         <div className="nav-links">
           {links.map((link) => (
-            <button
+            <NavLink
               key={link.id}
-              onClick={() => setActiveTab(link.id)}
-              className={`nav-link-btn ${activeTab === link.id ? 'active' : ''}`}
+              to={link.path}
+              className={({ isActive }) => `nav-link-btn ${isActive ? 'active' : ''}`}
             >
               {link.icon}
               <span>{link.label}</span>
-            </button>
+            </NavLink>
           ))}
         </div>
       </div>
@@ -61,6 +62,7 @@ const Navigation = ({ activeTab, setActiveTab }) => {
           color: var(--color-text-muted);
           transition: all 0.3s ease;
           border-bottom: 2px solid transparent;
+          text-decoration: none; /* Ensure no underline from Link */
         }
 
         .nav-link-btn:hover {

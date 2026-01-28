@@ -1,26 +1,41 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, User, ArrowRight, ArrowLeft } from 'lucide-react';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Calendar, User, ArrowRight, ArrowLeft, Share2, Edit } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 
-const NewsFeed = ({ news, editors }) => {
-  const [selectedArticle, setSelectedArticle] = useState(null);
+const NewsFeed = ({ news, editors, isAuthenticated }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   if (!news || news.length === 0) return <div className="news-feed">Nenhuma notícia publicada.</div>;
 
-  const featured = news[0];
-  const others = news.slice(1);
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Link copiado para a área de transferência!');
+  };
 
-  // Article View Component (Internal)
-  if (selectedArticle) {
+  // Article View (if ID is present)
+  if (id) {
+    const selectedArticle = news.find(n => n.id.toString() === id);
+
+    if (!selectedArticle) {
+      return (
+        <div className="news-feed">
+          <p>Notícia não encontrada.</p>
+          <Link to="/" className="back-btn"><ArrowLeft size={16} /> Voltar para Notícias</Link>
+        </div>
+      );
+    }
+
     const author = (editors || []).find(e => e.id === selectedArticle.authorId) ||
       (editors || []).find(e => e.name === selectedArticle.author) ||
       { name: selectedArticle.author || 'Redação', role: 'Colaborador', bio: '', avatar: '' };
 
     return (
       <div className="article-page-view">
-        <button className="back-btn" onClick={() => setSelectedArticle(null)}>
+        <Link to="/" className="back-btn">
           <ArrowLeft size={16} /> Voltar para Notícias
-        </button>
+        </Link>
 
         <motion.article
           initial={{ opacity: 0, x: 20 }}
@@ -33,6 +48,16 @@ const NewsFeed = ({ news, editors }) => {
             <div className="article-meta-row">
               <span className="meta-item"><Calendar size={14} /> {selectedArticle.date}</span>
               <span className="meta-item"><User size={14} /> {author.name}</span>
+              <div className="article-actions">
+                <button onClick={handleShare} className="action-btn" title="Compartilhar">
+                  <Share2 size={18} />
+                </button>
+                {isAuthenticated && (
+                  <button className="action-btn edit" title="Editar (Admin)">
+                    <Edit size={18} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -42,15 +67,10 @@ const NewsFeed = ({ news, editors }) => {
             </div>
           )}
 
-          <div className="article-body">
-            {selectedArticle.content ? (
-              selectedArticle.content.split('\n').map((paragraph, idx) => (
-                paragraph.trim() !== '' && <p key={idx}>{paragraph}</p>
-              ))
-            ) : (
-              <p className="fallback-text">{selectedArticle.excerpt}</p>
-            )}
-          </div>
+          <div
+            className="article-body"
+            dangerouslySetInnerHTML={{ __html: selectedArticle.content }} // HTML Rendering for Rich Text
+          />
 
           {selectedArticle.citation && (
             <div className="article-citation">
@@ -134,7 +154,7 @@ const NewsFeed = ({ news, editors }) => {
           .back-btn {
             background: none;
             border: none;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             font-family: var(--font-sans);
@@ -146,6 +166,7 @@ const NewsFeed = ({ news, editors }) => {
             font-size: 0.8rem;
             letter-spacing: 1px;
             transition: color 0.2s;
+            text-decoration: none;
           }
           .back-btn:hover { color: var(--color-secondary); }
 
@@ -162,6 +183,7 @@ const NewsFeed = ({ news, editors }) => {
             border-bottom: 1px solid var(--color-border);
             padding-bottom: 1.5rem;
             margin-bottom: 2rem;
+            align-items: center;
           }
 
           .meta-item {
@@ -172,6 +194,33 @@ const NewsFeed = ({ news, editors }) => {
             font-size: 0.85rem;
             text-transform: uppercase;
             font-weight: 600;
+          }
+          
+          .article-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 0.5rem;
+          }
+          
+          .action-btn {
+            background: none;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            padding: 0.4rem;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .action-btn:hover {
+            color: var(--color-secondary);
+            border-color: var(--color-secondary);
+          }
+          .action-btn.edit {
+             color: var(--color-primary);
           }
 
           .article-image-container img {
@@ -208,10 +257,16 @@ const NewsFeed = ({ news, editors }) => {
             text-align: justify;
           }
           
-          .article-body p {
-            margin-bottom: 1.5rem;
-            text-indent: 1.5rem;
-          }
+          /* Rich Text Content Styles */
+          .article-body p { margin-bottom: 1.5rem; }
+          .article-body h2 { font-size: 1.8rem; margin: 2rem 0 1rem; }
+          .article-body h3 { font-size: 1.5rem; margin: 1.5rem 0 1rem; }
+          .article-body ul, .article-body ol { margin-bottom: 1.5rem; padding-left: 2rem; }
+          .article-body li { margin-bottom: 0.5rem; }
+          .article-body a { color: var(--color-secondary); text-decoration: underline; }
+          .article-body strong { font-weight: 700; }
+          .article-body em { font-style: italic; }
+          .article-body blockquote { border-left: 4px solid var(--color-secondary); padding-left: 1rem; font-style: italic; margin-bottom: 1.5rem; }
 
           @media (max-width: 768px) {
             .article-title { font-size: 2rem; }
@@ -222,6 +277,9 @@ const NewsFeed = ({ news, editors }) => {
     );
   }
 
+  const featured = news[0];
+  const others = news.slice(1);
+
   // List View (Feed)
   return (
     <div className="news-feed">
@@ -231,18 +289,17 @@ const NewsFeed = ({ news, editors }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="featured-article"
-            onClick={() => setSelectedArticle(featured)}
           >
-            <div className="category-tag">{featured.category}</div>
-            <h2>{featured.title}</h2>
-            {featured.image && <img src={featured.image} alt={featured.title} className="featured-img" />}
-            <p className="excerpt">
-              {featured.excerpt || (featured.content ? featured.content.substring(0, 180) + '...' : '')}
-            </p>
-            <div className="article-meta">
-              <span>{featured.date}</span> • <span>Por {featured.author}</span>
-            </div>
-            <button className="read-more">Ler na integra <ArrowRight size={14} /></button>
+            <Link to={`/news/${featured.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="category-tag">{featured.category}</div>
+              <h2>{featured.title}</h2>
+              {featured.image && <img src={featured.image} alt={featured.title} className="featured-img" />}
+              <div className="excerpt" dangerouslySetInnerHTML={{ __html: featured.excerpt || (featured.content ? featured.content.substring(0, 180) + '...' : '') }} />
+              <div className="article-meta">
+                <span>{featured.date}</span> • <span>Por {featured.author}</span>
+              </div>
+              <button className="read-more">Ler na integra <ArrowRight size={14} /></button>
+            </Link>
           </motion.article>
 
           <div className="sub-grid">
@@ -253,16 +310,15 @@ const NewsFeed = ({ news, editors }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * (idx + 1) }}
                 className="sub-article"
-                onClick={() => setSelectedArticle(newsItem)}
               >
-                <div className="category-tag small">{newsItem.category}</div>
-                <h3>{newsItem.title}</h3>
-                <p className="excerpt small">
-                  {newsItem.excerpt || (newsItem.content ? newsItem.content.substring(0, 100) + '...' : '')}
-                </p>
-                <div className="article-meta small">
-                  {newsItem.date}
-                </div>
+                <Link to={`/news/${newsItem.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div className="category-tag small">{newsItem.category}</div>
+                  <h3>{newsItem.title}</h3>
+                  <div className="excerpt small" dangerouslySetInnerHTML={{ __html: newsItem.excerpt || (newsItem.content ? newsItem.content.substring(0, 100) + '...' : '') }} />
+                  <div className="article-meta small">
+                    {newsItem.date}
+                  </div>
+                </Link>
               </motion.article>
             ))}
           </div>

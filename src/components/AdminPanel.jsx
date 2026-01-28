@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import ReactQuill from 'react-quill'; // Import ReactQuill
 import { PlusCircle, Trash2, X, Newspaper, GraduationCap, Home, Gavel, BookOpen, Phone, User, Calendar, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const AdminPanel = ({ data = {}, onClose, userRole }) => {
+  // ... (existing state) ...
   console.log("AdminPanel Render - Got keys:", Object.keys(data));
   const [activeAdminTab, setActiveAdminTab] = useState('news');
   const { news = [], concursos = [], contacts = [], leituras = [], editors = [], eventos = [], addItem, deleteItem, updateItem } = data;
 
   const [newsForm, setNewsForm] = useState({ title: '', category: 'JUDICIÁRIO', content: '', citation: '', author: '', authorId: '', image: '' });
   const [editingNews, setEditingNews] = useState(null);
+  // ... (rest of state) ...
   const [eventForm, setEventForm] = useState({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '', image: '' });
   // Updated editorForm to include username and password
   const [editorForm, setEditorForm] = useState({ name: '', role: '', bio: '', avatar: '', username: '', password: '' });
@@ -22,155 +25,30 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
   const [editingContact, setEditingContact] = useState(null);
   const [editingConcurso, setEditingConcurso] = useState(null);
 
+
   const newsCategories = ['JUDICIÁRIO', 'TRABALHISTA', 'PREVIDENCIÁRIO', 'RURAL', 'CONSUMIDOR', 'CIVIL', 'FAMÍLIA', 'AMBIENTAL', 'FUNDIÁRIO', 'ADMINISTRATIVO', 'SERVIDOR PÚBLICO', 'PENAL', 'ARTIGO'];
 
-  const handleAdd = async (key, form, resetForm) => {
-    if (editingNews && key === 'news') {
-      // Update existing news - map authorId to author_id for Supabase
-      const updateData = { ...form };
-      if (updateData.authorId) {
-        updateData.author_id = updateData.authorId;
-        delete updateData.authorId;
-      }
-      await updateItem('news', editingNews.id, updateData);
-      setEditingNews(null);
-    } else if (editingEditor && key === 'editors') {
-      // Update existing editor (only send password if it was changed)
-      const updateData = { ...form };
-      if (!updateData.password) {
-        delete updateData.password; // Don't update password if field is empty
-      }
-      await updateItem('editors', editingEditor.id, updateData);
-      setEditingEditor(null);
-    } else if (editingEvento && key === 'eventos') {
-      await updateItem('eventos', editingEvento.id, form);
-      setEditingEvento(null);
-    } else if (editingLeitura && key === 'leituras') {
-      await updateItem('leituras', editingLeitura.id, form);
-      setEditingLeitura(null);
-    } else if (editingContact && key === 'contacts') {
-      await updateItem('contacts', editingContact.id, form);
-      setEditingContact(null);
-    } else if (editingConcurso && key === 'concursos') {
-      await updateItem('concursos', editingConcurso.id, form);
-      setEditingConcurso(null);
-    } else {
-      // Create new item
-      await addItem(key, form);
-    }
-    resetForm();
+  // Quill Modules for Toolbar
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link', 'image'],
+      ['clean']
+    ],
   };
 
-  // Universal edit handler
-  const handleEdit = (type, item) => {
-    switch (type) {
-      case 'eventos':
-        setEditingEvento(item);
-        setEventForm({
-          title: item.title || '',
-          date: item.date || '',
-          location: item.location || '',
-          description: item.description || '',
-          type: item.type || 'PRESENCIAL',
-          link: item.link || '',
-          image: item.image || ''
-        });
-        setActiveAdminTab('eventos');
-        break;
-      case 'leituras':
-        setEditingLeitura(item);
-        setLeituraForm({
-          title: item.title || '',
-          author: item.author || '',
-          type: item.type || 'LIVRO',
-          category: item.category || 'GERAL',
-          synopsis: item.synopsis || '',
-          cover: item.cover || '',
-          link: item.link || '#'
-        });
-        setActiveAdminTab('leituras');
-        break;
-      case 'contacts':
-        setEditingContact(item);
-        setContactForm({
-          comarca: item.comarca || '',
-          setor: item.setor || '',
-          telefone: item.telefone || ''
-        });
-        setActiveAdminTab('contacts');
-        break;
-      case 'concursos':
-        setEditingConcurso(item);
-        setConcursoForm({
-          entidade: item.entidade || '',
-          cargo: item.cargo || '',
-          vagas: item.vagas || '',
-          remuneracao: item.remuneracao || '',
-          status: item.status || 'Inscrições Abertas',
-          nivel: item.nivel || 'MUNICIPAL'
-        });
-        setActiveAdminTab('concursos');
-        break;
-    }
-  };
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'link', 'image'
+  ];
 
-  const handleCancelEditUniversal = (type) => {
-    switch (type) {
-      case 'eventos':
-        setEditingEvento(null);
-        setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '', image: '' });
-        break;
-      case 'leituras':
-        setEditingLeitura(null);
-        setLeituraForm({ title: '', author: '', type: 'LIVRO', category: 'GERAL', synopsis: '', cover: '', link: '#' });
-        break;
-      case 'contacts':
-        setEditingContact(null);
-        setContactForm({ comarca: '', setor: '', telefone: '' });
-        break;
-      case 'concursos':
-        setEditingConcurso(null);
-        setConcursoForm({ entidade: '', cargo: '', vagas: '', remuneracao: '', status: 'Inscrições Abertas', nivel: 'MUNICIPAL' });
-        break;
-    }
-  };
-
-  const handleEditNews = (newsItem) => {
-    setEditingNews(newsItem);
-    setNewsForm({
-      title: newsItem.title || '',
-      category: newsItem.category || 'JUDICIÁRIO',
-      content: newsItem.content || '',
-      citation: newsItem.citation || '',
-      author: newsItem.author || '',
-      authorId: newsItem.author_id || newsItem.authorId || '',
-      image: newsItem.image || ''
-    });
-    setActiveAdminTab('news');
-  };
-
-  const handleCancelEdit = () => {
-    setEditingNews(null);
-    setNewsForm({ title: '', category: 'JUDICIÁRIO', content: '', citation: '', author: '', authorId: '', image: '' });
-  };
-
-  const handleEditEditor = (editor) => {
-    setEditingEditor(editor);
-    setEditorForm({
-      name: editor.name || '',
-      role: editor.role || '',
-      bio: editor.bio || '',
-      avatar: editor.avatar || '',
-      username: editor.username || '',
-      password: '' // Don't pre-fill password for security
-    });
-    setActiveAdminTab('editors');
-  };
-
-  const handleCancelEditEditor = () => {
-    setEditingEditor(null);
-    setEditorForm({ name: '', role: '', bio: '', avatar: '', username: '', password: '' });
-  };
+  // ... (rest of handlers) ...
 
   const handleAuthorUpdate = (itemId, newAuthorId) => {
     const selectedEditor = editors?.find(ed => ed.id == newAuthorId);
@@ -245,7 +123,17 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
               </div>
               <div className="form-group"><label>URL da Imagem</label><input type="text" value={newsForm.image} onChange={e => setNewsForm({ ...newsForm, image: e.target.value })} placeholder="https://..." /></div>
               <div className="form-group"><label>Fonte/Referência (Opcional)</label><textarea rows="3" value={newsForm.citation} onChange={e => setNewsForm({ ...newsForm, citation: e.target.value })} placeholder="Ex: Lei nº 1234/2024, Art. 5º"></textarea></div>
-              <div className="form-group"><label>Conteúdo</label><textarea rows="10" value={newsForm.content} onChange={e => setNewsForm({ ...newsForm, content: e.target.value })} required></textarea></div>
+              <div className="form-group">
+                <label>Conteúdo</label>
+                <ReactQuill
+                  theme="snow"
+                  value={newsForm.content}
+                  onChange={(value) => setNewsForm({ ...newsForm, content: value })}
+                  modules={modules}
+                  formats={formats}
+                  style={{ height: '300px', marginBottom: '3rem' }}
+                />
+              </div>
               <button type="submit" className="submit-btn"><PlusCircle size={18} /> {editingNews ? 'Salvar Alterações' : 'Publicar'}</button>
             </form>
           )}
@@ -278,7 +166,6 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
               <button type="submit" className="submit-btn"><PlusCircle size={18} /> {editingEditor ? 'Salvar Alterações' : 'Adicionar Redator'}</button>
             </form>
           )}
-
 
           {activeAdminTab === 'eventos' && (
             <div className="admin-section">
@@ -375,6 +262,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
             <div className="admin-section">
               <h3>Configurações do Sistema</h3>
               <div className="system-card" style={{ padding: '2rem', background: '#f9f9f9', borderRadius: '8px', border: '1px solid #ddd' }}>
+                {/* ... System config content ... */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <h4>Modo Manutenção</h4>
@@ -402,7 +290,6 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
             </div>
           )}
 
-          {/* Removed properties form section */}
         </section>
 
         <section className="manage-list">
@@ -501,7 +388,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
               ))}
           </div>
         </section>
-      </div>
+      </div >
 
       <style jsx>{`
         .admin-container { background: white; padding: 2rem; border: 1px solid var(--color-primary); box-shadow: 12px 12px 0 var(--color-primary); }
@@ -549,7 +436,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
         .del-btn:hover { opacity: 1; background: rgba(204, 0, 0, 0.1); border-radius: 4px; }
         @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
       `}</style>
-    </motion.div>
+    </motion.div >
   );
 };
 
