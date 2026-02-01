@@ -303,8 +303,8 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                 const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
                 return dateB - dateA; // Newest first
               })
-              .map(item => (
-                <div key={item?.id || Math.random()} className="admin-item-row">
+              .map((item, idx) => (
+                <div key={item?.id || `temp-${idx}`} className="admin-item-row">
                   {/* Image Verification Thumbnail */}
                   {(item.image || item.cover || item.avatar) && (
                     <div className="item-thumb">

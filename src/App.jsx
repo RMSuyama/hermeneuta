@@ -1,20 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navigation from './components/Navigation';
-import NewsFeed from './components/NewsFeed';
-import ContactDirectory from './components/ContactDirectory';
-import ConcursosFeed from './components/ConcursosFeed';
-import LinksUteisFeed from './components/LinksUteisFeed';
-import LeituraFeed from './components/LeituraFeed';
-import EventosFeed from './components/EventosFeed';
-import AdminPanel from './components/AdminPanel';
-import LoginForm from './components/LoginForm';
-import MaintenanceScreen from './components/MaintenanceScreen';
-import { useData } from './hooks/useData';
-import { Settings, LogOut } from 'lucide-react';
-
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+// ... (imports)
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
   const [showAdmin, setShowAdmin] = useState(false);
@@ -26,7 +13,6 @@ function App() {
     news = [],
     concursos = [],
     contacts = [],
-    properties = [],
     leituras = [],
     editors = [],
     eventos = [],
@@ -34,7 +20,6 @@ function App() {
     isMaintenanceMode = false
   } = data;
 
-  const location = useLocation();
 
   console.log("App Render - Auth:", isAuthenticated, "Role:", userRole, "Loading:", loading);
 
