@@ -13,7 +13,8 @@ import { useData } from './hooks/useData';
 import { Settings, LogOut } from 'lucide-react';
 
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 function App() {
   const [showAdmin, setShowAdmin] = useState(false);

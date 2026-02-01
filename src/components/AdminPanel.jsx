@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import ReactQuill from 'react-quill'; // Import ReactQuill
+import ReactQuill from 'react-quill-new';
+// Import ReactQuill
 import { PlusCircle, Trash2, X, Newspaper, GraduationCap, Home, Gavel, BookOpen, Phone, User, Calendar, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
