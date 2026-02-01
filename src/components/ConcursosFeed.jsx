@@ -3,7 +3,7 @@ import { mockConcursos } from '../data/mockConcursos';
 import { motion } from 'framer-motion';
 import { ExternalLink, Briefcase, GraduationCap, Share2 } from 'lucide-react';
 
-const ConcursosFeed = () => {
+const ConcursosFeed = ({ concursos = mockConcursos }) => {
   const handleShare = () => {
     const url = window.location.href;
     if (navigator.share) {

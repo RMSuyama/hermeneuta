@@ -18,11 +18,11 @@ const EventosFeed = ({ eventos, isAuthenticated }) => {
     if (id) {
         const selectedEvent = eventos.find(e => e.id.toString() === id);
 
-        if (!selectedEvent) return <div className="eventos-feed"><p>Evento não encontrado.</p><Link to="/eventos" className="back-btn"><ArrowLeft size={16} /> Voltar</Link></div>;
+        if (!selectedEvent) return <div className="eventos-feed"><p>Evento não encontrado.</p><Link href="/eventos" className="back-btn"><ArrowLeft size={16} /> Voltar</Link></div>;
 
         return (
             <div className="eventos-feed">
-                <Link to="/eventos" className="back-btn">
+                <Link href="/eventos" className="back-btn">
                     <ArrowLeft size={16} /> Voltar para Eventos
                 </Link>
 
@@ -134,7 +134,7 @@ const EventosFeed = ({ eventos, isAuthenticated }) => {
                         transition={{ delay: 0.1 * idx }}
                         className="evento-card"
                     >
-                        <Link to={`/eventos/${evento.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', gap: '1.5rem', width: '100%', alignItems: 'flex-start' }}>
+                        <Link href={`/eventos/${evento.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', gap: '1.5rem', width: '100%', alignItems: 'flex-start' }}>
                             {evento.image && (
                                 <div className="evento-image-thumb">
                                     <img src={evento.image} alt={evento.title} />

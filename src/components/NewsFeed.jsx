@@ -24,7 +24,7 @@ const NewsFeed = ({ news, editors, isAuthenticated }) => {
       return (
         <div className="news-feed">
           <p>Notícia não encontrada.</p>
-          <Link to="/" className="back-btn"><ArrowLeft size={16} /> Voltar para Notícias</Link>
+          <Link href="/" className="back-btn"><ArrowLeft size={16} /> Voltar para Notícias</Link>
         </div>
       );
     }
@@ -35,7 +35,7 @@ const NewsFeed = ({ news, editors, isAuthenticated }) => {
 
     return (
       <div className="article-page-view">
-        <Link to="/" className="back-btn">
+        <Link href="/" className="back-btn">
           <ArrowLeft size={16} /> Voltar para Notícias
         </Link>
 
@@ -292,7 +292,7 @@ const NewsFeed = ({ news, editors, isAuthenticated }) => {
             animate={{ opacity: 1, y: 0 }}
             className="featured-article"
           >
-            <Link to={`/news/${featured.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link href={`/news/${featured.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <div className="category-tag">{featured.category}</div>
               <h2>{featured.title}</h2>
               {featured.image && <img src={featured.image} alt={featured.title} className="featured-img" />}
@@ -313,7 +313,7 @@ const NewsFeed = ({ news, editors, isAuthenticated }) => {
                 transition={{ delay: 0.1 * (idx + 1) }}
                 className="sub-article"
               >
-                <Link to={`/news/${newsItem.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Link href={`/news/${newsItem.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className="category-tag small">{newsItem.category}</div>
                   <h3>{newsItem.title}</h3>
                   <div className="excerpt small" dangerouslySetInnerHTML={{ __html: newsItem.excerpt || (newsItem.content ? newsItem.content.substring(0, 100) + '...' : '') }} />

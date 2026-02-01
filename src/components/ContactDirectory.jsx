@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Search, MapPin, PhoneCall } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ContactDirectory = ({ contacts }) => {
+const ContactDirectory = ({ contacts = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredContacts = contacts.filter(c =>
