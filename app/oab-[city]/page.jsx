@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Phone, MapPin, Calendar, ShieldCheck, Scale, Info, Newspaper } from "lucide-react";
+import { Phone, MapPin, Calendar, ShieldCheck, Scale, Info, Newspaper, Share2 } from "lucide-react";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
+import ShareButton from "@/components/ShareButton";
 
 const CITY_DATA = {
     registro: {
@@ -64,8 +65,13 @@ export default function OABPage({ params }) {
                     <div className="flex justify-center mb-2 md:mb-4">
                         <Scale size={48} className="text-gold md:w-16 md:h-16" />
                     </div>
-                    <h1 className="text-3xl md:text-6xl font-serif mb-1 text-gradient uppercase tracking-widest">Subseção da OAB</h1>
-                    <p className="text-2xl md:text-4xl font-serif text-foreground/90 italic">{data.name}</p>
+                    <div className="flex flex-col items-center gap-4">
+                        <h1 className="text-3xl md:text-6xl font-serif mb-1 text-gradient uppercase tracking-widest">Subseção da OAB</h1>
+                        <p className="text-2xl md:text-4xl font-serif text-foreground/90 italic">{data.name}</p>
+                        <div className="mt-4">
+                            <ShareButton title={`OAB ${data.name} - Hub Jurídico Vale do Ribeira`} />
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -119,7 +125,9 @@ export default function OABPage({ params }) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <Button variant="link" className="text-gold p-0">Ler na íntegra &rarr;</Button>
+                                    <Button variant="link" className="text-gold p-0" asChild>
+                                        <a href={`/news/${news.id}`}>Ler na íntegra &rarr;</a>
+                                    </Button>
                                 </CardContent>
                             </Card>
                         ))}
