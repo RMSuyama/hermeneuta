@@ -5,6 +5,12 @@ import WhatsAppFAB from "@/components/WhatsAppFAB";
 import ShareButton from "@/components/ShareButton";
 import { mockNews } from "@/src/data/mockNews";
 
+export async function generateStaticParams() {
+    return mockNews.map((article) => ({
+        id: article.id.toString(),
+    }));
+}
+
 export async function generateMetadata({ params }) {
     const { id } = params;
     const article = mockNews.find(n => n.id.toString() === id);

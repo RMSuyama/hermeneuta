@@ -38,9 +38,26 @@ const MOCK_NEWS = [
     { id: 4, city: 'iguape', title: "Justiça Itinerante atende moradores da zona rural de Iguape", date: "29 Jan 2024" },
 ];
 
+export async function generateStaticParams() {
+    return [
+        { city: 'registro' },
+        { city: 'jacupiranga' },
+        { city: 'iguape' },
+    ];
+}
+
 export async function generateMetadata({ params }) {
     const { city } = params;
-    const name = city.charAt(0).toUpperCase() + city.slice(1);
+
+    // Guard for build phase or unexpected params
+    if (!city || !CITY_DATA[city]) {
+        return {
+            title: 'Subseção OAB | Hermeneuta',
+            description: 'Informações das subseções da OAB no Vale do Ribeira.'
+        };
+    }
+
+    const name = CITY_DATA[city].name;
     return {
         title: `OAB ${name} - Hub Jurídico Vale do Ribeira`,
         description: `Informações oficiais, Prerrogativas, Fórum e notícias da Subseção da OAB de ${name}/SP. O melhor suporte para o advogado no Vale.`,

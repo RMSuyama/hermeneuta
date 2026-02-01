@@ -19,7 +19,12 @@ export const metadata = {
     description: 'Portal definitivo para advogados e estudantes de Direito no Vale do Ribeira. OAB Registro, Jacupiranga, Iguape e Conteúdo Acadêmico.',
     keywords: ['Advogado no Vale do Ribeira', 'OAB Registro SP', 'OAB Jacupiranga', 'OAB Iguape', 'Direito Vale do Ribeira', 'Correspondente Jurídico Vale do Ribeira'],
     authors: [{ name: 'Hermeneuta Team' }],
-    viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+};
+
+export const viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
 };
 
 export default function RootLayout({ children }) {
