@@ -27,11 +27,19 @@ export const viewport = {
     maximumScale: 1,
 };
 
+import { DataProvider } from '@/components/DataProvider';
+import Navigation from '@/components/Navigation';
+
 export default function RootLayout({ children }) {
     return (
         <html lang="pt-br" className={`${inter.variable} ${playfair.variable}`}>
             <body className="bg-background text-foreground min-h-screen flex flex-col">
-                {children}
+                <DataProvider>
+                    <Navigation />
+                    <main className="flex-1">
+                        {children}
+                    </main>
+                </DataProvider>
             </body>
         </html>
     );
