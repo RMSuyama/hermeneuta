@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, ExternalLink, Users, X, Clock, Share2, Edit, ArrowLeft } from 'lucide-react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 const EventosFeed = ({ eventos, isAuthenticated }) => {
     const { id } = useParams();

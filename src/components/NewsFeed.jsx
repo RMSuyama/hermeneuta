@@ -1,11 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, User, ArrowRight, ArrowLeft, Share2, Edit } from 'lucide-react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const NewsFeed = ({ news, editors, isAuthenticated }) => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const id = params?.id;
+  const router = useRouter();
 
   if (!news || news.length === 0) return <div className="news-feed">Nenhuma notícia publicada.</div>;
 

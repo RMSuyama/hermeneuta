@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useGlobalData } from '@/components/DataProvider';
-import AdminPanel from '@/src/components/AdminPanel';
+import dynamic from 'next/dynamic';
+const AdminPanel = dynamic(() => import('@/src/components/AdminPanel'), { ssr: false });
 import LoginForm from '@/src/components/LoginForm';
 
 export default function AdminPage() {
