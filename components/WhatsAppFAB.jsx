@@ -11,6 +11,9 @@ export default function WhatsAppFAB() {
     if (pathname.includes('oab-jacupiranga')) ctaText = "Falar com suporte de Jacupiranga";
     if (pathname.includes('oab-iguape')) ctaText = "Falar com suporte de Iguape";
     if (pathname.includes('academico')) ctaText = "Falar com suporte Acadêmico";
+    if (pathname.includes('horarios-onibus')) ctaText = "Dúvida sobre Horários";
+    if (pathname.includes('balcao-oportunidades')) ctaText = "Anunciar Vaga / Estágio";
+    if (pathname.includes('central-diligencias')) ctaText = "Contratar Correspondente";
 
     const message = encodeURIComponent(`Olá, estou na página ${ctaText.replace('Falar com ', '')} do Hermeneuta e gostaria de informações.`);
     const whatsappUrl = `https://wa.me/5513999999999?text=${message}`; // Número exemplo
