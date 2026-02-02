@@ -5,23 +5,58 @@ import { motion } from 'framer-motion';
 
 const FullEditor = ({ value, onChange }) => {
   const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'font': [] }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['link', 'image', 'video'],
-      ['clean']
-    ],
+    toolbar: {
+      container: [
+        // Estilos rápidos (Quick Styles)
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+
+        // Formatação de texto básica
+        ['bold', 'italic', 'underline', 'strike'],
+
+        // Sobrescrito e subscrito
+        [{ 'script': 'sub' }, { 'script': 'super' }],
+
+        // Estilos de bloco
+        ['blockquote', 'code-block'],
+
+        // Listas e indentação (similar à régua do Word)
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'indent': '-1' }, { 'indent': '+1' }],
+
+        // Direção do texto
+        [{ 'direction': 'rtl' }],
+
+        // Cores (texto e fundo)
+        [{ 'color': [] }, { 'background': [] }],
+
+        // Alinhamento
+        [{ 'align': [] }],
+
+        // Mídia
+        ['link', 'image', 'video'],
+
+        // Limpar formatação
+        ['clean']
+      ],
+      handlers: {
+        // Handlers customizados podem ser adicionados aqui
+      }
+    },
+    clipboard: {
+      // Aceita formatação do Word e outros editores
+      matchVisual: true
+    }
   };
 
   const formats = [
     'header', 'font', 'size',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'bold', 'italic', 'underline', 'strike',
+    'script',
+    'blockquote', 'code-block',
     'list', 'bullet', 'indent',
+    'direction',
     'color', 'background',
     'align',
     'link', 'image', 'video'
@@ -29,18 +64,102 @@ const FullEditor = ({ value, onChange }) => {
 
   return (
     <div className="editor-wrapper">
+      <div className="editor-tips">
+        <strong>💡 Dicas rápidas:</strong>
+        <span>Ctrl+B (negrito)</span>
+        <span>Ctrl+I (itálico)</span>
+        <span>Ctrl+U (sublinhado)</span>
+        <span>Cole textos do Word diretamente!</span>
+      </div>
       <ReactQuill
         theme="snow"
         value={value}
         onChange={onChange}
         modules={modules}
         formats={formats}
+        placeholder="Digite ou cole seu conteúdo aqui... Aceita formatação do Word!"
       />
       <style jsx>{`
-                .editor-wrapper { margin-bottom: 3rem; background: white; color: black; border-radius: 4px; }
-                :global(.ql-container) { min-height: 400px; font-size: 16px; }
-                :global(.ql-editor) { min-height: 400px; }
-            `}</style>
+        .editor-wrapper { 
+          margin-bottom: 3rem; 
+          background: white; 
+          color: black; 
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .editor-tips {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 0.75rem 1rem;
+          border-radius: 8px 8px 0 0;
+          font-size: 0.75rem;
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+        .editor-tips strong {
+          color: #ffd700;
+        }
+        .editor-tips span {
+          background: rgba(255,255,255,0.2);
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-family: monospace;
+        }
+        :global(.ql-container) { 
+          min-height: 500px; 
+          font-size: 16px;
+          font-family: 'Georgia', serif;
+          line-height: 1.6;
+        }
+        :global(.ql-editor) { 
+          min-height: 500px;
+          padding: 2rem;
+        }
+        :global(.ql-toolbar) {
+          background: #f8f9fa;
+          border: none !important;
+          border-bottom: 2px solid #e0e0e0 !important;
+          padding: 1rem;
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+        :global(.ql-toolbar button) {
+          margin: 0 2px;
+        }
+        :global(.ql-toolbar button:hover) {
+          color: #667eea !important;
+        }
+        :global(.ql-toolbar .ql-stroke) {
+          stroke: #333;
+        }
+        :global(.ql-toolbar button:hover .ql-stroke) {
+          stroke: #667eea;
+        }
+        :global(.ql-toolbar .ql-fill) {
+          fill: #333;
+        }
+        :global(.ql-toolbar button:hover .ql-fill) {
+          fill: #667eea;
+        }
+        :global(.ql-editor.ql-blank::before) {
+          color: #aaa;
+          font-style: italic;
+        }
+        /* Estilos para conteúdo colado do Word */
+        :global(.ql-editor p) {
+          margin-bottom: 1em;
+        }
+        :global(.ql-editor h1),
+        :global(.ql-editor h2),
+        :global(.ql-editor h3) {
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          font-weight: bold;
+        }
+      `}</style>
     </div>
   );
 };
@@ -154,7 +273,16 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
   const handleEdit = (key, item) => {
     if (key === 'news') {
       setEditingNews(item);
-      setNewsForm({ ...item, authorId: item.author_id || item.authorId || '' });
+      // Properly handle images array - convert old single image to array format if needed
+      const initialImages = item.images && item.images.length > 0
+        ? item.images
+        : (item.image ? [{ url: item.image, caption: '' }] : []);
+
+      setNewsForm({
+        ...item,
+        authorId: item.author_id || item.authorId || '',
+        images: initialImages
+      });
     } else if (key === 'eventos') {
       setEditingEvento(item);
       setEventForm(item);
@@ -758,14 +886,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                   )}
                   {/* Edit button for news (admin or own article) */}
                   {activeAdminTab === 'news' && (userRole === 'admin' || item.author_id === data.currentUserId) && (
-                    <button onClick={() => {
-                      // Prepare form with existing data, handling the image array migration
-                      const initialImages = item.images && item.images.length > 0
-                        ? item.images
-                        : (item.image ? [{ url: item.image, caption: '' }] : []);
-
-                      handleEdit('news', { ...item, images: initialImages });
-                    }} className="edit-btn" title="Editar">
+                    <button onClick={() => handleEdit('news', item)} className="edit-btn" title="Editar">
                       Editar
                     </button>
                   )}
