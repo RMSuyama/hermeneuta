@@ -199,6 +199,10 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
   const [editingAcademico, setEditingAcademico] = useState(null);
   const [editingReserva, setEditingReserva] = useState(null);
 
+  // Filter States for News Management
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('TODAS');
+  const [filterAuthor, setFilterAuthor] = useState('TODOS');
 
   const newsCategories = ['JUDICIÁRIO', 'TRABALHISTA', 'PREVIDENCIÁRIO', 'RURAL', 'CONSUMIDOR', 'CIVIL', 'FAMÍLIA', 'AMBIENTAL', 'FUNDIÁRIO', 'ADMINISTRATIVO', 'SERVIDOR PÚBLICO', 'PENAL', 'ARTIGO'];
 
@@ -779,9 +783,63 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
         </section>
 
         <section className="manage-list">
-          <h3>Gerenciar {activeAdminTab === 'news' ? 'Notícias' : activeAdminTab}</h3>
+          <div className="manage-header">
+            <h3>Gerenciar {activeAdminTab === 'news' ? 'Notícias' : activeAdminTab}</h3>
+            <span className="item-count">{(data[activeAdminTab] || []).length} {activeAdminTab === 'news' ? 'notícias' : 'itens'}</span>
+          </div>
+
+          {/* FILTROS MODERNOS - Apenas para notícias */}
+          {activeAdminTab === 'news' && (
+            <div className="filters-section">
+              <div className="filter-group">
+                <label>🔍 Buscar</label>
+                <input
+                  type="text"
+                  placeholder="Digite o título da notícia..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
+                />
+              </div>
+              <div className="filter-group">
+                <label>📂 Categoria</label>
+                <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="filter-select">
+                  <option value="TODAS">Todas as categorias</option>
+                  {newsCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>✍️ Autor</label>
+                <select value={filterAuthor} onChange={(e) => setFilterAuthor(e.target.value)} className="filter-select">
+                  <option value="TODOS">Todos os autores</option>
+                  {editors?.map(ed => <option key={ed.id} value={ed.id}>{ed.name}</option>)}
+                </select>
+              </div>
+              {(searchQuery || filterCategory !== 'TODAS' || filterAuthor !== 'TODOS') && (
+                <button className="clear-filters" onClick={() => { setSearchQuery(''); setFilterCategory('TODAS'); setFilterAuthor('TODOS'); }}>
+                  ✖ Limpar filtros
+                </button>
+              )}
+            </div>
+          )}
+
           <div className="items-list-admin">
             {(data[activeAdminTab] || [])
+              .filter(item => {
+                // Apply filters only for news
+                if (activeAdminTab !== 'news') return true;
+
+                const matchesSearch = !searchQuery ||
+                  (item.title && item.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                const matchesCategory = filterCategory === 'TODAS' || item.category === filterCategory;
+
+                const matchesAuthor = filterAuthor === 'TODOS' ||
+                  String(item.author_id) === String(filterAuthor) ||
+                  String(item.authorId) === String(filterAuthor);
+
+                return matchesSearch && matchesCategory && matchesAuthor;
+              })
               .sort((a, b) => {
                 // Sort by created_at if available, otherwise by id
                 const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
@@ -789,32 +847,35 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                 return dateB - dateA; // Newest first
               })
               .map(item => (
-                <div key={item?.id || Math.random()} className="admin-item-row">
-                  {/* Image Verification Thumbnail */}
+                <div key={item?.id || Math.random()} className="admin-item-card">
+                  {/* Image Thumbnail with overlay */}
                   {(item.image || item.cover || item.avatar) && (
-                    <div className="item-thumb">
-                      <img src={item.image || item.cover || item.avatar} alt="thumb" onError={(e) => e.target.style.border = '2px solid red'} />
+                    <div className="item-thumb-modern">
+                      <img src={item.image || item.cover || item.avatar} alt="thumb" onError={(e) => e.target.style.display = 'none'} />
+                      <div className="thumb-overlay"></div>
                     </div>
                   )}
 
-                  <div className="item-info">
-                    <span>{item?.category || item?.role || item?.tribunal || item?.type || item?.comarca || item?.user_name}</span>
-                    <h4>{item?.title || item?.name || item?.processo || item?.cargo || item?.setor || item?.username || (item?.content && item.content.length > 50 ? item.content.substring(0, 50) + '...' : item?.content)}</h4>
-                    {/* Show publication date for news */}
-                    {activeAdminTab === 'news' && item?.created_at && (
-                      <span style={{ fontSize: '0.7rem', color: '#999', display: 'block', marginTop: '0.25rem' }}>
-                        Publicado em: {new Date(item.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    )}
+                  <div className="item-content">
+                    <div className="item-meta">
+                      <span className="category-badge">{item?.category || item?.role || item?.tribunal || item?.type || item?.comarca || item?.user_name}</span>
+                      {activeAdminTab === 'news' && item?.created_at && (
+                        <span className="date-badge">
+                          📅 {new Date(item.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="item-title">{item?.title || item?.name || item?.processo || item?.cargo || item?.setor || item?.username || (item?.content && item.content.length > 50 ? item.content.substring(0, 50) + '...' : item?.content)}</h4>
 
                     {/* Author Editing for Admins */}
                     {userRole === 'admin' && activeAdminTab === 'news' && (
-                      <div className="author-edit">
+                      <div className="author-edit-inline">
                         <label>Autor:</label>
                         <select
                           value={item.author_id || item.authorId || ''}
                           onChange={(e) => handleAuthorUpdate(item.id, e.target.value)}
-                          className="author-select"
+                          className="author-select-modern"
                         >
                           <option value="">Selecione...</option>
                           {editors?.map(editor => (
@@ -823,78 +884,82 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                         </select>
                       </div>
                     )}
+
                     {/* Show Author Name for non-admins or if needed */}
                     {(userRole !== 'admin' || activeAdminTab !== 'news') && item.author && (
-                      <span className="author-display">Por: {item.author}</span>
+                      <span className="author-display">✍️ {item.author}</span>
                     )}
+
                     {/* Show Username for editors in list */}
                     {activeAdminTab === 'editors' && item.username && (
-                      <span style={{ fontSize: '0.7em', color: '#555' }}>Login: {item.username}</span>
+                      <span className="username-display">👤 Login: {item.username}</span>
                     )}
                   </div>
 
-                  {/* Edit buttons for all content types (admin only) */}
-                  {activeAdminTab === 'editors' && userRole === 'admin' && (
-                    <button onClick={() => handleEditEditor(item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'eventos' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('eventos', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'leituras' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('leituras', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'contacts' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('contacts', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'concursos' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('concursos', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'instituicoes' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('instituicoes', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'equipamentos' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('equipamentos', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'vagas' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('vagas', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'academico' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('academico', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {activeAdminTab === 'reservas' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('reservas', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {/* Edit button for news (admin or own article) */}
-                  {activeAdminTab === 'news' && (userRole === 'admin' || item.author_id === data.currentUserId) && (
-                    <button onClick={() => handleEdit('news', item)} className="edit-btn" title="Editar">
-                      Editar
-                    </button>
-                  )}
-                  {userRole === 'admin' && (
-                    <button onClick={() => deleteItem(activeAdminTab, item.id)} className="del-btn" title="Excluir">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
+                  <div className="item-actions">
+                    {/* Edit buttons for all content types (admin only) */}
+                    {activeAdminTab === 'editors' && userRole === 'admin' && (
+                      <button onClick={() => handleEditEditor(item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'eventos' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('eventos', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'leituras' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('leituras', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'contacts' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('contacts', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'concursos' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('concursos', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'instituicoes' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('instituicoes', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'equipamentos' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('equipamentos', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'vagas' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('vagas', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'academico' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('academico', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {activeAdminTab === 'reservas' && userRole === 'admin' && (
+                      <button onClick={() => handleEdit('reservas', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {/* Edit button for news (admin or own article) */}
+                    {activeAdminTab === 'news' && (userRole === 'admin' || item.author_id === data.currentUserId) && (
+                      <button onClick={() => handleEdit('news', item)} className="edit-btn-modern" title="Editar">
+                        ✏️ Editar
+                      </button>
+                    )}
+                    {userRole === 'admin' && (
+                      <button onClick={() => deleteItem(activeAdminTab, item.id)} className="del-btn-modern" title="Excluir">
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
           </div>
@@ -902,50 +967,489 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
       </div >
 
       <style jsx>{`
-        .admin-container { background: white; padding: 2rem; border: 1px solid var(--color-primary); box-shadow: 12px 12px 0 var(--color-primary); }
-        .admin-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--color-primary); padding-bottom: 1rem; margin-bottom: 2rem; }
-        .admin-nav-tabs { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
-        .admin-nav-tabs button { background: none; border: 1px solid var(--color-border); padding: 0.4rem 0.8rem; font-family: var(--font-sans); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; }
-        .admin-nav-tabs button.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
-        .news-form h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--color-text-muted); margin-bottom: 0.3rem; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--color-border); font-family: var(--font-sans); }
-        .submit-btn { width: 100%; padding: 1rem; background: var(--color-primary); color: white; border: none; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .items-list-admin { max-height: 400px; overflow-y: auto; padding-right: 10px; }
-        .admin-item-row { display: flex; gap: 1rem; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); }
-        .item-thumb { width: 50px; height: 50px; flex-shrink: 0; background: #eee; }
-        .item-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .item-info { flex: 1; }
-        .item-info span { font-size: 0.6rem; font-weight: 800; color: var(--color-secondary); display: block; }
-        .item-info h4 { font-size: 0.9rem; margin: 0.1rem 0; font-family: var(--font-serif); }
-        .author-edit { margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-        .author-edit label { margin: 0; }
-        .author-select { padding: 0.2rem; font-size: 0.7rem; width: auto; }
-          .edit-btn { 
-            background: var(--color-primary); 
-            border: none; 
-            color: white; 
-            cursor: pointer; 
-            padding: 0.5rem 1rem; 
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            border-radius: 0;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            margin-right: 0.5rem;
-          }
-          .edit-btn:hover { 
-            background: var(--color-secondary);
-          }
-        .del-btn { background: none; border: none; color: #cc0000; cursor: pointer; opacity: 0.6; padding: 0.5rem; }
-        .del-btn:hover { opacity: 1; background: rgba(204, 0, 0, 0.1); border-radius: 4px; }
-        @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
+        /* CONTAINER E HEADER MODERNOS */
+        .admin-container { 
+          background: linear-gradient(135deg, #f5f7fa 0%, #fafbfc 100%); 
+          padding: 3rem; 
+          border-radius: 24px;
+          box-shadow: 0 20px 80px rgba(0,0,0,0.1);
+          min-height: 90vh;
+        }
+        
+        .admin-header { 
+          display: flex; 
+          justify-content: space-between; 
+          align-items: flex-start; 
+          background: white;
+          padding: 2rem;
+          border-radius: 16px;
+          margin-bottom: 2rem;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .admin-title h2 {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-size: 2rem;
+          margin-bottom: 1rem;
+        }
+        
+        .admin-nav-tabs { 
+          display: flex; 
+          gap: 0.75rem; 
+          margin-top: 1rem; 
+          flex-wrap: wrap; 
+        }
+        
+        .admin-nav-tabs button { 
+          background: white; 
+          border: 2px solid #e0e0e0; 
+          padding: 0.75rem 1.25rem; 
+          font-family: var(--font-sans); 
+          font-size: 0.85rem; 
+          font-weight: 700; 
+          cursor: pointer; 
+          display: flex; 
+          align-items: center; 
+          gap: 0.5rem;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          color: #333;
+        }
+        
+        .admin-nav-tabs button:hover { 
+          border-color: #667eea;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .admin-nav-tabs button.active { 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white; 
+          border-color: transparent;
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .close-btn {
+          background: #ff4757;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+          transform: rotate(90deg);
+          box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+        }
+        
+        /* GRID MODERNO */
+        .admin-grid { 
+          display: grid; 
+          grid-template-columns: 1.2fr 1fr; 
+          gap: 2rem; 
+        }
+        
+        /* SEÇÃO DE PUBLICAÇÃO - CONVIDATIVA */
+        .publish-form {
+          background: white;
+          padding: 2.5rem;
+          border-radius: 20px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+          min-height: 600px;
+        }
+        
+        .news-form h3 { 
+          font-size: 1.5rem; 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-bottom: 2rem;
+          font-weight: 800;
+        }
+        
+        .form-group { 
+          margin-bottom: 1.5rem; 
+        }
+        
+        .form-row { 
+          display: grid; 
+          grid-template-columns: 1fr 1fr; 
+          gap: 1.5rem; 
+        }
+        
+        label { 
+          display: block; 
+          font-size: 0.8rem; 
+          font-weight: 700; 
+          color: #555;
+          margin-bottom: 0.5rem; 
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        
+        input, select, textarea { 
+          width: 100%; 
+          padding: 1rem; 
+          border: 2px solid #e0e0e0; 
+          font-family: var(--font-sans);
+          border-radius: 12px;
+          transition: all 0.3s;
+          font-size: 0.95rem;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+          border-color: #667eea;
+          outline: none;
+          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .submit-btn { 
+          width: 100%; 
+          padding: 1.25rem; 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white; 
+          border: none; 
+          font-weight: 800; 
+          text-transform: uppercase; 
+          cursor: pointer; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          gap: 0.75rem;
+          border-radius: 12px;
+          font-size: 1rem;
+          transition: all 0.3s;
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+        }
+        
+        /* GERENCIAR NOTÍCIAS - MODERNA */
+        .manage-list {
+          background: white;
+          padding: 2.5rem;
+          border-radius: 20px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        
+        .manage-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .manage-header h3 {
+          font-size: 1.5rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-weight: 800;
+          margin: 0;
+        }
+        
+        .item-count {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 700;
+        }
+        
+        /* FILTROS MODERNOS */
+        .filters-section {
+          background: linear-gradient(135deg, #f5f7fa 0%, #fafbfc 100%);
+          padding: 1.5rem;
+          border-radius: 16px;
+          margin-bottom: 2rem;
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr auto;
+          gap: 1rem;
+          align-items: end;
+        }
+        
+        .filter-group {
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .filter-group label {
+          font-size: 0.75rem;
+          margin-bottom: 0.5rem;
+          color: #666;
+        }
+        
+        .search-input, .filter-select {
+          padding: 0.75rem 1rem;
+          border: 2px solid #e0e0e0;
+          border-radius: 10px;
+          font-size: 0.9rem;
+          transition: all 0.3s;
+        }
+        
+        .search-input:focus, .filter-select:focus {
+          border-color: #667eea;
+          outline: none;
+          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .clear-filters {
+          background: #ff4757;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.25rem;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: 700;
+          font-size: 0.85rem;
+          transition: all 0.3s;
+          white-space: nowrap;
+        }
+        
+        .clear-filters:hover {
+          background: #ff3838;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+        }
+        
+        /* LISTA DE ITENS - CARDS MODERNOS */
+        .items-list-admin { 
+          max-height: 600px; 
+          overflow-y: auto; 
+          padding-right: 10px;
+        }
+        
+        .items-list-admin::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        .items-list-admin::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        
+        .items-list-admin::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 10px;
+        }
+        
+        .admin-item-card {
+          background: white;
+          border: 2px solid #f0f0f0;
+          border-radius: 16px;
+          padding: 1.5rem;
+          margin-bottom: 1.5rem;
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          gap: 1.5rem;
+          align-items: start;
+          transition: all 0.3s;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .admin-item-card:hover {
+          border-color: #667eea;
+          box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+          transform: translateY(-2px);
+        }
+        
+        .admin-item-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 4px;
+          height: 100%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        
+        .admin-item-card:hover::before {
+          opacity: 1;
+        }
+        
+        .item-thumb-modern {
+          width: 100px;
+          height: 100px;
+          border-radius: 12px;
+          overflow: hidden;
+          position: relative;
+          flex-shrink: 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .item-thumb-modern img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s;
+        }
+        
+        .admin-item-card:hover .item-thumb-modern img {
+          transform: scale(1.1);
+        }
+        
+        .thumb-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        
+        .admin-item-card:hover .thumb-overlay {
+          opacity: 1;
+        }
+        
+        .item-content {
+          flex: 1;
+        }
+        
+        .item-meta {
+          display: flex;
+          gap: 0.75rem;
+          margin-bottom: 0.75rem;
+          flex-wrap: wrap;
+        }
+        
+        .category-badge {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 0.35rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        
+        .date-badge {
+          background: #f5f7fa;
+          color: #666;
+          padding: 0.35rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.7rem;
+          font-weight: 600;
+        }
+        
+        .item-title {
+          font-size: 1.1rem;
+          font-family: var(--font-serif);
+          margin: 0 0 0.75rem 0;
+          color: #222;
+          font-weight: 700;
+          line-height: 1.4;
+        }
+        
+        .author-edit-inline {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 0.75rem;
+        }
+        
+        .author-edit-inline label {
+          margin: 0;
+          font-size: 0.75rem;
+          color: #666;
+        }
+        
+        .author-select-modern {
+          padding: 0.4rem 0.75rem;
+          font-size: 0.8rem;
+          border: 2px solid #e0e0e0;
+          border-radius: 8px;
+          font-weight: 600;
+          min-width: 150px;
+        }
+        
+        .author-display, .username-display {
+          font-size: 0.85rem;
+          color: #666;
+          display: block;
+          margin-top: 0.5rem;
+          font-weight: 600;
+        }
+        
+        .item-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: stretch;
+        }
+        
+        .edit-btn-modern {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          padding: 0.75rem 1.25rem;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: 700;
+          font-size: 0.85rem;
+          transition: all 0.3s;
+          white-space: nowrap;
+        }
+        
+        .edit-btn-modern:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .del-btn-modern {
+          background: #ff4757;
+          color: white;
+          border: none;
+          padding: 0.75rem;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 1.2rem;
+          transition: all 0.3s;
+        }
+        
+        .del-btn-modern:hover {
+          background: #ff3838;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+        }
+        
+        /* OLD STYLES (for compatibility) */
+        .admin-item-row { display: none; }
+        .item-thumb { display: none; }
+        .item-info { display: none; }
+        .edit-btn { display: none; }
+        .del-btn { display: none; }
+        .author-edit { display: none; }
+        .author-select { display: none; }
+        
+        @media (max-width: 1200px) { 
+          .admin-grid { grid-template-columns: 1fr; }
+          .filters-section { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+          .admin-container { padding: 1.5rem; }
+          .admin-item-card { grid-template-columns: 1fr; }
+          .item-thumb-modern { width: 100%; height: 200px; }
+        }
       `}</style>
     </motion.div >
   );
