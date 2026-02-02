@@ -2,24 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { mockNews } from '../data/mockNews';
-import { mockConcursos } from '../data/mockConcursos';
-import { mockLeituras } from '../data/mockLeituras';
-import { mockEventos } from '../data/mockEventos';
-import { mockInstituicoes } from '../data/mockInstituicoes';
-import { mockEquipamentos } from '../data/mockEquipamentos';
-import { mockVozDoVale } from '../data/mockVozDoVale';
-import { contacts as initialContacts } from '../data/contacts';
-
-const INITIAL_EDITORS = [
-    {
-        name: 'Redação Hermeneuta',
-        role: 'Equipe Editorial',
-        bio: 'Compromisso com a informação jurídica de qualidade no Vale do Ribeira.',
-        avatar: '',
-        username: 'admin',
-        password: 'admin123'
-    }
-];
 
 export const useData = () => {
     const [data, setData] = useState({
@@ -32,7 +14,10 @@ export const useData = () => {
         instituicoes: [],
         equipamentos: [],
         vagas: [],
-        vozDoVale: []
+        vozDoVale: [],
+        comments: [],
+        reservas: [],
+        academico: []
     });
     const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -40,71 +25,70 @@ export const useData = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [newsRes, eventosRes, editorsRes, contactsRes, leiturasRes, concursosRes, configRes] = await Promise.all([
+            const [
+                newsRes,
+                eventosRes,
+                editorsRes,
+                contactsRes,
+                leiturasRes,
+                concursosRes,
+                commentsRes,
+                reservasRes,
+                vozDoValeRes,
+                vagasRes,
+                instituicoesRes,
+                equipamentosRes,
+                configRes
+            ] = await Promise.all([
                 supabase.from('news').select('*').order('created_at', { ascending: false }),
                 supabase.from('eventos').select('*').order('date', { ascending: true }),
                 supabase.from('editors').select('*'),
                 supabase.from('contacts').select('*'),
                 supabase.from('leituras').select('*').order('created_at', { ascending: false }),
                 supabase.from('concursos').select('*').order('created_at', { ascending: false }),
+                supabase.from('comments').select('*').order('created_at', { ascending: false }),
+                supabase.from('reservas').select('*').order('created_at', { ascending: false }),
+                supabase.from('voz_do_vale').select('*').order('created_at', { ascending: false }),
+                supabase.from('vagas').select('*').order('created_at', { ascending: false }),
+                supabase.from('instituicoes').select('*').order('name', { ascending: true }),
+                supabase.from('equipamentos').select('*').order('created_at', { ascending: false }),
                 supabase.from('config').select('*')
             ]);
+
+            // Troubleshooting logs
+            if (newsRes.error) console.error("News error:", newsRes.error);
+            if (vozDoValeRes.error) console.error("Voz do Vale error:", vozDoValeRes.error);
+            if (reservasRes.error) console.error("Reservas error:", reservasRes.error);
+
+            // Fallback content if Supabase is empty
+            const finalNews = (newsRes.data && newsRes.data.length > 0) ? newsRes.data : mockNews;
+
+            console.log("Supabase Fetch Results:", {
+                news: newsRes.data?.length || 0,
+                reservas: reservasRes.data?.length || 0,
+                academico: vozDoValeRes.data?.length || 0,
+                usingFallback: !newsRes.data || newsRes.data.length === 0
+            });
 
             // Maintenance Check
             const maintenance = configRes.data?.find(c => c.key === 'maintenance_mode');
             if (maintenance) setIsMaintenanceMode(maintenance.value === true);
 
-            // SEEDING
-            if (newsRes.data?.length === 0) {
-                const seedNews = mockNews.map(n => ({
-                    title: n.title,
-                    category: n.category,
-                    content: n.content,
-                    citation: n.citation || '',
-                    author: n.author || '',
-                    author_id: n.authorId?.toString() || '',
-                    image: n.image || '',
-                    date: n.date
-                }));
-                await supabase.from('news').insert(seedNews);
-            }
-
-            if (eventosRes.data?.length === 0) {
-                await supabase.from('eventos').insert(mockEventos.map(e => ({
-                    title: e.title,
-                    date: e.date,
-                    location: e.location,
-                    description: e.description,
-                    type: e.type,
-                    link: e.link
-                })));
-            }
-
-            if (editorsRes.data?.length === 0) {
-                await supabase.from('editors').insert(INITIAL_EDITORS);
-            }
-
-            if (contactsRes.data?.length === 0) {
-                await supabase.from('contacts').insert(initialContacts);
-            }
-
-            // Sync with DB
-            const { data: finalEditors } = await supabase.from('editors').select('*');
-            const { data: finalContacts } = await supabase.from('contacts').select('*');
-            const { data: finalNews } = await supabase.from('news').select('*').order('created_at', { ascending: false });
-            const { data: finalEventos } = await supabase.from('eventos').select('*').order('date', { ascending: true });
-
             setData({
-                news: finalNews || [],
-                eventos: finalEventos || [],
-                editors: finalEditors || [],
-                contacts: finalContacts || [],
+                news: finalNews,
+                eventos: eventosRes.data || [],
+                editors: editorsRes.data || [],
+                contacts: contactsRes.data || [],
                 concursos: concursosRes.data || [],
                 leituras: leiturasRes.data || [],
-                instituicoes: mockInstituicoes, // Local mock for now
-                equipamentos: mockEquipamentos, // Local mock for now
-                vozDoVale: mockVozDoVale, // Local mock for now
-                properties: [] // Keep for compatibility even if empty
+                instituicoes: instituicoesRes.data || [],
+                equipamentos: equipamentosRes.data || [],
+                vozDoVale: vozDoValeRes.data || [],
+                vagas: vagasRes.data || [],
+                comments: commentsRes.data || [],
+                reservas: reservasRes.data || [],
+                academico: vozDoValeRes.data || [],
+                properties: []
             });
 
         } catch (error) {
@@ -119,6 +103,10 @@ export const useData = () => {
     }, []);
 
     const addItem = async (key, item) => {
+        if (isMaintenanceMode) {
+            console.warn("CRUD blocked: Maintenance mode is active.");
+            return;
+        }
         try {
             const tableMap = {
                 news: 'news',
@@ -128,7 +116,9 @@ export const useData = () => {
                 leituras: 'leituras',
                 concursos: 'concursos',
                 vagas: 'vagas',
-                vozDoVale: 'voz_do_vale'
+                academico: 'voz_do_vale',
+                comments: 'comments',
+                reservas: 'reservas'
             };
             const tableName = tableMap[key];
 
@@ -157,6 +147,10 @@ export const useData = () => {
     };
 
     const deleteItem = async (key, id) => {
+        if (isMaintenanceMode) {
+            console.warn("CRUD blocked: Maintenance mode is active.");
+            return;
+        }
         try {
             const tableMap = {
                 news: 'news',
@@ -166,7 +160,9 @@ export const useData = () => {
                 leituras: 'leituras',
                 concursos: 'concursos',
                 vagas: 'vagas',
-                vozDoVale: 'voz_do_vale'
+                academico: 'voz_do_vale',
+                comments: 'comments',
+                reservas: 'reservas'
             };
             const tableName = tableMap[key];
             if (!tableName) {
@@ -182,6 +178,10 @@ export const useData = () => {
     };
 
     const updateItem = async (key, id, updatedFields) => {
+        if (isMaintenanceMode) {
+            console.warn("CRUD blocked: Maintenance mode is active.");
+            return;
+        }
         try {
             const tableMap = {
                 news: 'news',
@@ -191,7 +191,9 @@ export const useData = () => {
                 leituras: 'leituras',
                 concursos: 'concursos',
                 vagas: 'vagas',
-                vozDoVale: 'voz_do_vale'
+                academico: 'voz_do_vale',
+                comments: 'comments',
+                reservas: 'reservas'
             };
             const tableName = tableMap[key];
             if (!tableName) {

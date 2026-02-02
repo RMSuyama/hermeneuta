@@ -12,7 +12,7 @@ const NewsFeed = ({ news, editors, isAuthenticated, focusMode, setFocusMode }) =
   const [filter, setFilter] = React.useState('TODOS');
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const categories = ['TODOS', 'RURAL', 'PREVIDENCIÁRIO', 'CONSUMIDOR', 'AMBIENTAL', 'FAMÍLIA', 'TRABALHISTA', 'JUDICIÁRIO'];
+  const categories = ['TODOS', 'RURAL', 'PREVIDENCIÁRIO', 'CONSUMIDOR', 'AMBIENTAL', 'FAMÍLIA', 'TRABALHISTA', 'ARTIGO', 'ADMINISTRATIVO'];
 
   if (!news || news.length === 0) return <div className="news-feed">Nenhuma notícia publicada.</div>;
 
@@ -48,11 +48,9 @@ const NewsFeed = ({ news, editors, isAuthenticated, focusMode, setFocusMode }) =
     return (
       <div className={`article-page-view ${focusMode ? 'focus-mode-active' : ''}`}>
         <SEO type="NewsArticle" data={selectedArticle} />
-        {!focusMode && (
-          <Link to="/" className="back-btn">
-            <ArrowLeft size={16} /> Voltar para Notícias
-          </Link>
-        )}
+        <Link to="/" className={`back-btn ${focusMode ? 'focus-visible' : ''}`}>
+          <ArrowLeft size={16} /> Voltar para Notícias
+        </Link>
 
         <motion.article
           initial={{ opacity: 0, x: 20 }}
@@ -308,47 +306,7 @@ const NewsFeed = ({ news, editors, isAuthenticated, focusMode, setFocusMode }) =
           .focus-toggle:hover { transform: scale(1.1); background: var(--color-accent); color: black; }
           .focus-toggle.active { background: var(--color-accent); color: black; }
 
-          .focus-mode-active {
-              background: #fdfaf5; /* Sepia background */
-              min-height: 100vh;
-              padding: 4rem 1rem !important;
-              max-width: 100% !important;
-              margin: 0 !important;
-              position: fixed;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              overflow-y: auto;
-              z-index: 9998;
-          }
 
-          body.dark-mode .focus-mode-active {
-              background: #0f172a; /* Deep blue-gray for focus dark mode */
-          }
-
-          .focus-mode-active .full-article-content {
-              max-width: 800px;
-              margin: 0 auto;
-              background: none;
-          }
-
-          .focus-mode-active .article-title {
-              font-size: 3.5rem;
-              text-align: center;
-          }
-
-          .focus-mode-active .article-body {
-              font-size: 1.4rem;
-              line-height: 1.9;
-          }
-
-          .focus-mode-active .author-profile,
-          .focus-mode-active .comments-section-wrapper {
-              display: block; /* Keep author and comments but centered */
-              max-width: 800px;
-              margin: 4rem auto;
-          }
         `}</style>
       </div>
     );

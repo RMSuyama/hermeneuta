@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactQuill from 'react-quill'; // Import ReactQuill
-import { PlusCircle, Trash2, X, Newspaper, GraduationCap, Home, Gavel, BookOpen, Phone, User, Calendar, Settings, Building, Briefcase } from 'lucide-react';
+import { PlusCircle, Trash2, X, Newspaper, GraduationCap, Home, Gavel, BookOpen, Phone, User, Calendar, Settings, Building, Briefcase, MessageSquare, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const FullEditor = ({ value, onChange }) => {
@@ -49,7 +49,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
   // ... (existing state) ...
   console.log("AdminPanel Render - Got keys:", Object.keys(data));
   const [activeAdminTab, setActiveAdminTab] = useState('news');
-  const { news = [], concursos = [], contacts = [], leituras = [], editors = [], eventos = [], instituicoes = [], equipamentos = [], addItem, deleteItem, updateItem } = data;
+  const { news = [], concursos = [], contacts = [], leituras = [], editors = [], eventos = [], instituicoes = [], equipamentos = [], addItem, deleteItem, updateItem, isMaintenanceMode, reservas = [] } = data;
 
   const [newsForm, setNewsForm] = useState({ title: '', category: 'JUDICIÁRIO', content: '', citation: '', author: '', authorId: '', image: '', images: [] });
   const [editingNews, setEditingNews] = useState(null);
@@ -68,6 +68,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
   const [equipamentoForm, setEquipamentoForm] = useState({ title: '', category: 'ACESSÓRIOS', description: '', price: '', link: '', image: '' });
   const [vagaForm, setVagaForm] = useState({ title: '', company: '', type: 'CLT', location: '', link: '', description: '' });
   const [academicoForm, setAcademicoForm] = useState({ title: '', author: '', type: 'ARTIGO CIENTÍFICO', institution: '', year: new Date().getFullYear().toString(), resume: '', content: '', image: '', link: '', isFeatured: false });
+  const [reservaForm, setReservaForm] = useState({ title: '', category: 'HOTEL', location: '', description: '', image: '', link: '' });
 
   const [editingEvento, setEditingEvento] = useState(null);
   const [editingLeitura, setEditingLeitura] = useState(null);
@@ -77,6 +78,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
   const [editingEquipamento, setEditingEquipamento] = useState(null);
   const [editingVaga, setEditingVaga] = useState(null);
   const [editingAcademico, setEditingAcademico] = useState(null);
+  const [editingReserva, setEditingReserva] = useState(null);
 
 
   const newsCategories = ['JUDICIÁRIO', 'TRABALHISTA', 'PREVIDENCIÁRIO', 'RURAL', 'CONSUMIDOR', 'CIVIL', 'FAMÍLIA', 'AMBIENTAL', 'FUNDIÁRIO', 'ADMINISTRATIVO', 'SERVIDOR PÚBLICO', 'PENAL', 'ARTIGO'];
@@ -101,7 +103,114 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
     'link', 'image'
   ];
 
-  // ... (rest of handlers) ...
+  const handleAdd = async (key, formData, resetForm) => {
+    if (isMaintenanceMode) return;
+    try {
+      if (editingNews && key === 'news') {
+        await updateItem('news', editingNews.id, formData);
+        setEditingNews(null);
+      } else if (editingEvento && key === 'eventos') {
+        await updateItem('eventos', editingEvento.id, formData);
+        setEditingEvento(null);
+      } else if (editingEditor && key === 'editors') {
+        await updateItem('editors', editingEditor.id, formData);
+        setEditingEditor(null);
+      } else if (editingLeitura && key === 'leituras') {
+        await updateItem('leituras', editingLeitura.id, formData);
+        setEditingLeitura(null);
+      } else if (editingContact && key === 'contacts') {
+        await updateItem('contacts', editingContact.id, formData);
+        setEditingContact(null);
+      } else if (editingConcurso && key === 'concursos') {
+        await updateItem('concursos', editingConcurso.id, formData);
+        setEditingConcurso(null);
+      } else if (editingInstituicao && key === 'instituicoes') {
+        await updateItem('instituicoes', editingInstituicao.id, formData);
+        setEditingInstituicao(null);
+      } else if (editingEquipamento && key === 'equipamentos') {
+        await updateItem('equipamentos', editingEquipamento.id, formData);
+        setEditingEquipamento(null);
+      } else if (editingVaga && key === 'vagas') {
+        await updateItem('vagas', editingVaga.id, formData);
+        setEditingVaga(null);
+      } else if (editingAcademico && key === 'academico') {
+        await updateItem('academico', editingAcademico.id, formData);
+        setEditingAcademico(null);
+        setAcademicoForm({ title: '', author: '', type: 'ARTIGO CIENTÍFICO', institution: '', year: new Date().getFullYear().toString(), resume: '', content: '', image: '', link: '', isFeatured: false });
+      } else if (editingReserva && key === 'reservas') {
+        await updateItem('reservas', editingReserva.id, formData);
+        setEditingReserva(null);
+        setReservaForm({ title: '', category: 'HOTEL', location: '', description: '', image: '', link: '' });
+      } else {
+        await addItem(key, formData);
+      }
+      resetForm();
+    } catch (err) {
+      console.error(`Error saving ${key}:`, err);
+      alert("Erro ao salvar. Verifique o console.");
+    }
+  };
+
+  const handleEdit = (key, item) => {
+    if (key === 'news') {
+      setEditingNews(item);
+      setNewsForm({ ...item, authorId: item.author_id || item.authorId || '' });
+    } else if (key === 'eventos') {
+      setEditingEvento(item);
+      setEventForm(item);
+    } else if (key === 'leituras') {
+      setEditingLeitura(item);
+      setLeituraForm(item);
+    } else if (key === 'contacts') {
+      setEditingContact(item);
+      setContactForm(item);
+    } else if (key === 'concursos') {
+      setEditingConcurso(item);
+      setConcursoForm(item);
+    } else if (key === 'instituicoes') {
+      setEditingInstituicao(item);
+      setInstituicaoForm(item);
+    } else if (key === 'equipamentos') {
+      setEditingEquipamento(item);
+      setEquipamentoForm(item);
+    } else if (key === 'vagas') {
+      setEditingVaga(item);
+      setVagaForm(item);
+    } else if (key === 'academico') {
+      setEditingAcademico(item);
+      setAcademicoForm(item);
+    } else if (key === 'reservas') {
+      setEditingReserva(item);
+      setReservaForm(item);
+    }
+  };
+
+  const handleEditEditor = (editor) => {
+    setEditingEditor(editor);
+    setEditorForm({ ...editor, password: '' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingNews(null);
+    setNewsForm({ title: '', category: 'JUDICIÁRIO', content: '', citation: '', author: '', authorId: '', image: '', images: [] });
+  };
+
+  const handleCancelEditEditor = () => {
+    setEditingEditor(null);
+    setEditorForm({ name: '', role: '', bio: '', avatar: '', username: '', password: '' });
+  };
+
+  const handleCancelEditUniversal = (key) => {
+    if (key === 'eventos') { setEditingEvento(null); setEventForm({ title: '', date: '', location: '', description: '', type: 'PRESENCIAL', link: '', image: '' }); }
+    if (key === 'leituras') { setEditingLeitura(null); setLeituraForm({ title: '', author: '', type: 'LIVRO', category: 'GERAL', synopsis: '', cover: '', link: '#' }); }
+    if (key === 'contacts') { setEditingContact(null); setContactForm({ comarca: '', setor: '', telefone: '' }); }
+    if (key === 'concursos') { setEditingConcurso(null); setConcursoForm({ entidade: '', cargo: '', vagas: '', remuneracao: '', status: 'Inscrições Abertas', nivel: 'MUNICIPAL' }); }
+    if (key === 'instituicoes') { setEditingInstituicao(null); setInstituicaoForm({ name: '', type: 'OAB', city: '', image: '', description: '', history: '', link: '' }); }
+    if (key === 'equipamentos') { setEditingEquipamento(null); setEquipamentoForm({ title: '', category: 'ACESSÓRIOS', description: '', price: '', link: '', image: '' }); }
+    if (key === 'vagas') { setEditingVaga(null); setVagaForm({ title: '', company: '', type: 'CLT', location: '', link: '', description: '' }); }
+    if (key === 'academico') { setEditingAcademico(null); setAcademicoForm({ title: '', author: '', type: 'ARTIGO CIENTÍFICO', institution: '', year: new Date().getFullYear().toString(), resume: '', content: '', image: '', link: '', isFeatured: false }); }
+    if (key === 'reservas') { setEditingReserva(null); setReservaForm({ title: '', category: 'HOTEL', location: '', description: '', image: '', link: '' }); }
+  };
 
   const handleAuthorUpdate = (itemId, newAuthorId) => {
     const selectedEditor = editors?.find(ed => ed.id == newAuthorId);
@@ -116,6 +225,20 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
       animate={{ opacity: 1, scale: 1 }}
       className="admin-container"
     >
+      {isMaintenanceMode && (
+        <div style={{
+          backgroundColor: '#ff4d4f',
+          color: 'white',
+          padding: '0.75rem',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          borderRadius: '8px',
+          marginBottom: '1rem',
+          boxShadow: '0 4px 12px rgba(255, 77, 79, 0.3)'
+        }}>
+          ⚠️ MODO MANUTENÇÃO ATIVO: As alterações estão bloqueadas para proteção dos dados.
+        </div>
+      )}
       <div className="admin-header">
         <div className="admin-title">
           <h2>Painel de Gestão ({userRole === 'admin' ? 'Administrador' : 'Redator'})</h2>
@@ -132,6 +255,8 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                 <button className={activeAdminTab === 'academico' ? 'active' : ''} onClick={() => setActiveAdminTab('academico')}><BookOpen size={16} /> Acadêmico</button>
                 <button className={activeAdminTab === 'leituras' ? 'active' : ''} onClick={() => setActiveAdminTab('leituras')}><BookOpen size={16} /> Indicações</button>
                 <button className={activeAdminTab === 'contacts' ? 'active' : ''} onClick={() => setActiveAdminTab('contacts')}><Phone size={16} /> Contatos</button>
+                <button className={activeAdminTab === 'comments' ? 'active' : ''} onClick={() => setActiveAdminTab('comments')}><MessageSquare size={16} /> Comentários</button>
+                <button className={activeAdminTab === 'reservas' ? 'active' : ''} onClick={() => setActiveAdminTab('reservas')}><MapPin size={16} /> Reservas</button>
               </>
             )}
             {userRole === 'admin' && (
@@ -436,7 +561,7 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
           )}
 
           {activeAdminTab === 'academico' && userRole === 'admin' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleAdd('vozDoVale', academicoForm, () => setAcademicoForm({ title: '', author: '', type: 'ARTIGO CIENTÍFICO', institution: '', year: new Date().getFullYear().toString(), resume: '', content: '', image: '', link: '', isFeatured: false })); }} className="news-form">
+            <form onSubmit={(e) => { e.preventDefault(); handleAdd('academico', academicoForm, () => setAcademicoForm({ title: '', author: '', type: 'ARTIGO CIENTÍFICO', institution: '', year: new Date().getFullYear().toString(), resume: '', content: '', image: '', link: '', isFeatured: false })); }} className="news-form">
               <h3>{editingAcademico ? 'Editar Produção Acadêmica' : 'Nova Produção Acadêmica'}</h3>
               {editingAcademico && (
                 <div style={{ background: '#fff3cd', padding: '0.5rem', marginBottom: '1rem', borderRadius: '4px', fontSize: '0.85rem' }}>
@@ -467,6 +592,27 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                 <label htmlFor="isFeatured" style={{ margin: 0 }}>Colocar em Destaque (Destaque do Editor)</label>
               </div>
               <button type="submit" className="submit-btn"><PlusCircle size={18} /> {editingAcademico ? 'Salvar Alterações' : 'Publicar'}</button>
+            </form>
+          )}
+
+          {activeAdminTab === 'reservas' && userRole === 'admin' && (
+            <form onSubmit={(e) => { e.preventDefault(); handleAdd('reservas', reservaForm, () => setReservaForm({ title: '', category: 'HOTEL', location: '', description: '', image: '', link: '' })); }} className="news-form">
+              <h3>{editingReserva ? 'Editar Reserva / Recomendação' : 'Nova Recomendação (Hotéis/Roteiros)'}</h3>
+              {editingReserva && (
+                <div style={{ background: '#fff3cd', padding: '0.5rem', marginBottom: '1rem', borderRadius: '4px', fontSize: '0.85rem' }}>
+                  ✏️ Editando: <strong>{editingReserva.title}</strong>
+                  <button type="button" onClick={() => handleCancelEditUniversal('reservas')} style={{ marginLeft: '1rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>Cancelar</button>
+                </div>
+              )}
+              <div className="form-group"><label>Título / Nome</label><input type="text" value={reservaForm.title} onChange={e => setReservaForm({ ...reservaForm, title: e.target.value })} placeholder="Ex: Hotel Grand Vale, Roteiro Caverna do Diabo" required /></div>
+              <div className="form-row">
+                <div className="form-group"><label>Categoria</label><select value={reservaForm.category} onChange={e => setReservaForm({ ...reservaForm, category: e.target.value })}><option value="HOTEL">HOSPEDAGEM (HOTEL)</option><option value="RESTAURANTE">GASTRONOMIA (RESTAURANTE)</option><option value="TURISMO">TURISMO REGIONAL</option><option value="CAFÉ/BISTRÔ">CAFÉ / BISTRÔ</option></select></div>
+                <div className="form-group"><label>Localização (Cidade/Bairro)</label><input type="text" value={reservaForm.location} onChange={e => setReservaForm({ ...reservaForm, location: e.target.value })} required /></div>
+              </div>
+              <div className="form-group"><label>URL da Imagem</label><input type="text" value={reservaForm.image} onChange={e => setReservaForm({ ...reservaForm, image: e.target.value })} placeholder="https://..." /></div>
+              <div className="form-group"><label>Link (Site/Reserva)</label><input type="text" value={reservaForm.link} onChange={e => setReservaForm({ ...reservaForm, link: e.target.value })} placeholder="https://..." /></div>
+              <div className="form-group"><label>Descrição / Detalhes</label><textarea rows="4" value={reservaForm.description} onChange={e => setReservaForm({ ...reservaForm, description: e.target.value })} required></textarea></div>
+              <button type="submit" className="submit-btn"><PlusCircle size={18} /> {editingReserva ? 'Salvar Alterações' : 'Adicionar Recomendação'}</button>
             </form>
           )}
 
@@ -524,8 +670,8 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                   )}
 
                   <div className="item-info">
-                    <span>{item?.category || item?.role || item?.tribunal || item?.type || item?.comarca}</span>
-                    <h4>{item?.title || item?.name || item?.processo || item?.cargo || item?.setor || item?.username}</h4>
+                    <span>{item?.category || item?.role || item?.tribunal || item?.type || item?.comarca || item?.user_name}</span>
+                    <h4>{item?.title || item?.name || item?.processo || item?.cargo || item?.setor || item?.username || (item?.content && item.content.length > 50 ? item.content.substring(0, 50) + '...' : item?.content)}</h4>
                     {/* Show publication date for news */}
                     {activeAdminTab === 'news' && item?.created_at && (
                       <span style={{ fontSize: '0.7rem', color: '#999', display: 'block', marginTop: '0.25rem' }}>
@@ -601,7 +747,12 @@ const AdminPanel = ({ data = {}, onClose, userRole }) => {
                     </button>
                   )}
                   {activeAdminTab === 'academico' && userRole === 'admin' && (
-                    <button onClick={() => handleEdit('vozDoVale', item)} className="edit-btn" title="Editar">
+                    <button onClick={() => handleEdit('academico', item)} className="edit-btn" title="Editar">
+                      Editar
+                    </button>
+                  )}
+                  {activeAdminTab === 'reservas' && userRole === 'admin' && (
+                    <button onClick={() => handleEdit('reservas', item)} className="edit-btn" title="Editar">
                       Editar
                     </button>
                   )}

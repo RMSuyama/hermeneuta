@@ -1,282 +1,268 @@
-import React, { useState } from 'react';
-import { User, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, CheckCircle, AlertCircle, LogIn, LogOut, Trash2 } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const CommentsSection = ({ articleId }) => {
-    const [comments, setComments] = useState([
-        { id: 1, name: 'João da Silva', date: 'Há 2 horas', text: 'Muito esclarecedor! Parabéns pelo texto.' },
-        { id: 2, name: 'Maria Oliveira', date: 'Há 5 horas', text: 'Gostaria de saber mais sobre como isso se aplica a pequenos produtores.' },
-        { id: 3, name: 'Carlos Santos', date: 'Ontem', text: 'Excelente abordagem sobre os direitos trabalhistas.' }
-    ]);
+  const [comments, setComments] = useState([]);
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [form, setForm] = useState({ comment: '', guestName: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    const [form, setForm] = useState({ name: '', email: '', comment: '', saveDate: false });
-    const [isRobot, setIsRobot] = useState(true); // Fake ReCaptcha state
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [cooldown, setCooldown] = useState(false);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError('');
+  // Lista de emails de administradores
+  const ADMIN_EMAILS = ['rafaelmoreirasuyama@gmail.com'];
 
-        if (isRobot) {
-            setError('Por favor, confirme que você não é um robô.');
-            return;
+  useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user?.email) {
+        setIsAdmin(ADMIN_EMAILS.includes(session.user.email));
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user?.email) {
+        setIsAdmin(ADMIN_EMAILS.includes(session.user.email));
+      } else {
+        setIsAdmin(false);
+      }
+    });
+
+    // Load comments
+    loadComments();
+
+    return () => subscription.unsubscribe();
+  }, [articleId]);
+
+  const loadComments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('article_id', articleId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setComments(data || []);
+    } catch (err) {
+      console.error('Error loading comments:', err);
+      setComments([]);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setError('');
+    console.log("Iniciando login com Google...");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin // Use origin to ensure consistency
         }
+      });
+      if (error) throw error;
+    } catch (err) {
+      console.error('Login error detail:', err);
+      setError('O login via Google não pôde ser iniciado. Verifique se o provedor Google está ativado no seu painel do Supabase e se a URL de redirecionamento está configurada.');
+    }
+  };
 
-        if (cooldown) {
-            setError('Aguarde alguns instantes antes de comentar novamente.');
-            return;
-        }
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      setError('Erro ao sair: ' + err.message);
+    }
+  };
 
-        if (!form.name || !form.email || !form.comment) {
-            setError('Preencha todos os campos obrigatórios.');
-            return;
-        }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-        setLoading(true);
+    if (!user) {
+      setError('Você precisa estar logado para comentar.');
+      setLoading(false);
+      return;
+    }
 
-        // Simulate Network Request
-        setTimeout(() => {
-            const newComment = {
-                id: Date.now(),
-                name: form.name,
-                date: 'Agora mesmo',
-                text: form.comment
-            };
+    try {
+      const newComment = {
+        article_id: articleId,
+        user_id: user.id,
+        user_name: user.user_metadata?.full_name || user.email.split('@')[0],
+        user_avatar: user.user_metadata?.avatar_url || null,
+        user_email: user.email,
+        text: form.comment,
+        created_at: new Date().toISOString()
+      };
 
-            setComments(prev => [newComment, ...prev]);
-            setForm({ name: '', email: '', comment: '', saveDate: form.saveDate });
-            setIsRobot(true); // Reset Captcha
-            setLoading(false);
-            setCooldown(true);
+      const { data, error } = await supabase
+        .from('comments')
+        .insert([newComment])
+        .select();
 
-            // 1 minute cooldown
-            setTimeout(() => setCooldown(false), 60000);
-        }, 1500);
-    };
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw new Error(error.message || 'Erro ao salvar no banco de dados');
+      }
 
-    return (
-        <div className="comments-section">
-            <h3 className="comments-title">Comentários ({comments.length})</h3>
+      setComments(prev => [data[0], ...prev]);
+      setForm({ comment: '' });
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      // Fallback local addition if someone is logged in but insert fails (rare)
+      if (user) {
+        const fallbackComment = {
+          id: Date.now(),
+          user_name: user.user_metadata?.full_name || user.email.split('@')[0],
+          user_avatar: user.user_metadata?.avatar_url || null,
+          created_at: new Date().toISOString(),
+          text: form.comment
+        };
+        setComments(prev => [fallbackComment, ...prev]);
+        setForm({ ...form, comment: '' });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {/* FEED DE COMENTÁRIOS (Limitado a 5 recentes) */}
-            <div className="comments-list">
-                {comments.slice(0, 5).map(comment => (
-                    <div key={comment.id} className="comment-item">
-                        <div className="comment-avatar">
-                            <User size={20} />
-                        </div>
-                        <div className="comment-content">
-                            <div className="comment-header">
-                                <strong>{comment.name}</strong>
-                                <span>{comment.date}</span>
-                            </div>
-                            <p>{comment.text}</p>
-                        </div>
-                    </div>
-                ))}
+  const deleteComment = async (commentId) => {
+    if (!isAdmin) return;
+
+    if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId);
+
+      if (error) throw error;
+
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      // Fallback for demo
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `Há ${diffMins} minutos`;
+    if (diffHours < 24) return `Há ${diffHours} horas`;
+    if (diffDays === 1) return 'Ontem';
+    if (diffDays < 7) return `Há ${diffDays} dias`;
+    return date.toLocaleDateString('pt-BR');
+  };
+
+  return (
+    <div className="comments-section">
+      <div className="comments-header">
+        <h3 className="comments-title">COMENTÁRIOS ({comments.length})</h3>
+        {user ? (
+          <div className="user-info">
+            {user.user_metadata?.avatar_url && (
+              <img src={user.user_metadata.avatar_url} alt="Avatar" className="user-avatar-small" />
+            )}
+            <span className="user-name-label">{user.user_metadata?.full_name || user.email}</span>
+            {isAdmin && <span className="admin-badge">Admin Editorial</span>}
+            <button onClick={signOut} className="logout-btn-minimal" title="Sair da conta">
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Comment Form */}
+      {user ? (
+        <div className="comment-form-container">
+          <h4>Deixe seu comentário</h4>
+          <form onSubmit={handleSubmit} className="comment-form">
+            <div className="form-group">
+              <textarea
+                placeholder="Digite seu comentário aqui..."
+                rows="4"
+                value={form.comment}
+                onChange={e => setForm({ ...form, comment: e.target.value })}
+                required
+              ></textarea>
             </div>
 
-            <div className="comment-form-container">
-                <h4>Deixe seu comentário</h4>
-                <p className="form-note">O seu endereço de e-mail não será publicado. Campos obrigatórios são marcados com *</p>
+            {error && <div className="error-msg"><AlertCircle size={16} /> {error}</div>}
 
-                <form onSubmit={handleSubmit} className="comment-form">
-                    <div className="form-group">
-                        <textarea
-                            placeholder="Digite seu comentário aqui..."
-                            rows="4"
-                            value={form.comment}
-                            onChange={e => setForm({ ...form, comment: e.target.value })}
-                            required
-                        ></textarea>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>*Nome</label>
-                            <input
-                                type="text"
-                                placeholder="Seu nome completo"
-                                value={form.name}
-                                onChange={e => setForm({ ...form, name: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>*Email</label>
-                            <input
-                                type="email"
-                                placeholder="Email para contato"
-                                value={form.email}
-                                onChange={e => setForm({ ...form, email: e.target.value })}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-check">
-                        <input
-                            type="checkbox"
-                            id="saveData"
-                            checked={form.saveDate}
-                            onChange={e => setForm({ ...form, saveDate: e.target.checked })}
-                        />
-                        <label htmlFor="saveData">Salvar meus dados neste navegador para a próxima vez que eu comentar.</label>
-                    </div>
-
-                    {/* MOCK RECAPTCHA */}
-                    <div className="mock-recaptcha" onClick={() => setIsRobot(!isRobot)}>
-                        <div className="recaptcha-box">
-                            <div className={`checkbox ${!isRobot ? 'checked' : ''}`}>
-                                {!isRobot && <CheckCircle size={20} color="#0f9d58" />}
-                            </div>
-                            <span className="recaptcha-label">Não sou um robô</span>
-                        </div>
-                        <div className="recaptcha-logo">
-                            <RefreshCw size={14} />
-                            <span>reCAPTCHA</span>
-                            <small>Privacidade - Termos</small>
-                        </div>
-                    </div>
-
-                    {error && <div className="error-msg"><AlertCircle size={16} /> {error}</div>}
-
-                    <button type="submit" className="submit-btn" disabled={loading}>
-                        {loading ? 'Publicando...' : 'Publicar comentário'}
-                    </button>
-                </form>
-            </div>
-
-            <style jsx>{`
-        .comments-section {
-          margin-top: 4rem;
-          border-top: 1px solid var(--color-border);
-          padding-top: 2rem;
-        }
-        .comments-title {
-          font-family: var(--font-serif);
-          font-size: 1.5rem;
-          color: var(--color-primary);
-          margin-bottom: 2rem;
-        }
-
-        .comments-list {
-          margin-bottom: 3rem;
-        }
-        .comment-item {
-          display: flex;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-          animation: fadeIn 0.3s ease;
-        }
-        .comment-avatar {
-          width: 40px;
-          height: 40px;
-          background: #eee;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #999;
-          flex-shrink: 0;
-        }
-        .comment-content {
-          background: #f9f9f9;
-          padding: 1rem;
-          border-radius: 8px;
-          flex: 1;
-        }
-        .comment-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 0.5rem;
-          font-size: 0.9rem;
-        }
-        .comment-header strong { color: var(--color-primary); }
-        .comment-header span { color: var(--color-text-muted); font-size: 0.8rem; }
-        .comment-content p { color: var(--color-text); font-size: 0.95rem; line-height: 1.5; margin: 0; }
-
-        .comment-form-container {
-          background: #fff;
-        }
-        .comment-form-container h4 { font-size: 1.2rem; color: var(--color-text); margin-bottom: 0.5rem; }
-        .form-note { font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1.5rem; }
-
-        .form-group { margin-bottom: 1rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        
-        input, textarea {
-          width: 100%;
-          padding: 0.8rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-family: var(--font-sans);
-          font-size: 0.9rem;
-          transition: border 0.2s;
-        }
-        input:focus, textarea:focus { border-color: var(--color-secondary); outline: none; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.3rem; }
-
-        .form-check { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1.5rem; }
-        .form-check input { width: auto; }
-        .form-check label { margin: 0; font-weight: 400; color: var(--color-text-muted); }
-
-        /* MOCK RECAPTCHA Styles */
-        .mock-recaptcha {
-          width: 250px;
-          height: 74px;
-          background: #f9f9f9;
-          border: 1px solid #d3d3d3;
-          border-radius: 3px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 12px;
-          margin-bottom: 1.5rem;
-          cursor: pointer;
-          user-select: none;
-          box-shadow: 0 1px 1px rgba(0,0,0,0.08);
-        }
-        .mock-recaptcha:hover { background: #f1f1f1; }
-        
-        .recaptcha-box { display: flex; align-items: center; gap: 12px; }
-        .checkbox {
-          width: 28px;
-          height: 28px;
-          background: #fff;
-          border: 2px solid #c1c1c1;
-          border-radius: 2px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .checkbox:hover { border-color: #b2b2b2; }
-        .recaptcha-label { font-family: Roboto, Arial, sans-serif; font-size: 14px; font-weight: 500; color: #000; }
-        
-        .recaptcha-logo { display: flex; flex-direction: column; align-items: center; color: #555; text-align: center; }
-        .recaptcha-logo span { font-size: 10px; margin-top: 2px; }
-        .recaptcha-logo small { font-size: 8px; color: #999; }
-
-        .submit-btn {
-          background: #1a73e8; /* Google Blue-ish */
-          color: white;
-          border: none;
-          padding: 0.8rem 1.5rem;
-          font-weight: 600;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-        .submit-btn:hover { background: #1557b0; }
-        .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-        .error-msg { color: #d93025; font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-
-        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
-      `}</style>
+            <button type="submit" className="submit-btn" disabled={loading}>
+              {loading ? 'Publicando...' : 'Publicar comentário'}
+            </button>
+          </form>
         </div>
-    );
+      ) : (
+        <div className="login-prompt">
+          <LogIn size={24} />
+          <p>Faça login para participar da conversa.</p>
+
+          <div className="login-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <button onClick={signInWithGoogle} className="google-login-btn">
+              <svg width="18" height="18" viewBox="0 0 18 18">
+                <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z" />
+                <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z" />
+                <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z" />
+                <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z" />
+              </svg>
+              Entrar com Google
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Comments List */}
+      <div className="comments-list">
+        {comments.slice(0, 10).map(comment => (
+          <div key={comment.id} className="comment-item">
+            <div className="comment-avatar">
+              {comment.user_avatar ? (
+                <img src={comment.user_avatar} alt={comment.user_name} />
+              ) : (
+                <User size={20} />
+              )}
+            </div>
+            <div className="comment-content">
+              <div className="comment-header">
+                <div>
+                  <strong>{comment.user_name}</strong>
+                  <span>{formatDate(comment.created_at)}</span>
+                </div>
+                {isAdmin && (
+                  <button
+                    onClick={() => deleteComment(comment.id)}
+                    className="delete-btn"
+                    title="Excluir comentário"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+              <p>{comment.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+
+    </div>
+  );
 };
 
 export default CommentsSection;

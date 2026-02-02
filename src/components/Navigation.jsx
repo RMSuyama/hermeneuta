@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Newspaper, Phone, Info, GraduationCap, Link as ExternalLink, Gavel, BookOpen, Calendar, Building2, Briefcase, Bus, Monitor, ScrollText, Trophy, Building, Briefcase as OfficeIcon } from 'lucide-react';
+import { Newspaper, Phone, Info, GraduationCap, Link as ExternalLink, Gavel, BookOpen, Calendar, Building2, Briefcase, Bus, Monitor, ScrollText, Trophy, Building, Briefcase as OfficeIcon, MapPin } from 'lucide-react';
 
 const Navigation = () => {
   const location = useLocation();
@@ -12,6 +12,7 @@ const Navigation = () => {
     { id: 'vagas', path: '/vagas', label: 'Vagas', icon: <Briefcase size={16} /> },
     { id: 'horarios', path: '/horarios', label: 'Ônibus', icon: <Bus size={16} /> },
     { id: 'equipamentos', path: '/equipamentos', label: 'Escritório', icon: <OfficeIcon size={16} /> },
+    { id: 'reservas', path: '/reservas', label: 'Reservas', icon: <MapPin size={16} /> },
     { id: 'academico', path: '/academico', label: 'Acadêmico', icon: <GraduationCap size={16} /> },
     { id: 'concursos', path: '/concursos', label: 'Concursos', icon: <Trophy size={16} /> },
     { id: 'eventos', path: '/eventos', label: 'Eventos', icon: <Calendar size={16} /> },
@@ -51,7 +52,7 @@ const Navigation = () => {
         .nav-links {
           display: flex;
           justify-content: center;
-          gap: 1.5rem;
+          gap: 0.8rem;
           flex-wrap: wrap;
         }
 

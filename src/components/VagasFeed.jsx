@@ -1,24 +1,20 @@
 import React from 'react';
 import { Briefcase, MapPin, DollarSign, Clock, Building, ExternalLink } from 'lucide-react';
 
-const VagasFeed = ({ items }) => {
-    // Fallback to internal mock if no items provided
-    const localMock = [
-        {
-            id: 1,
-            title: 'Advogado Junior Cível',
-            company: 'Silva & Souza Advogados Associados',
-            location: 'Registro - SP',
-            salary: 'R$ 3.500,00',
-            type: 'Presencial',
-            description: 'Estamos em busca de um advogado recém-formado para atuar na área cível. Necessário ter OAB ativa e boa redação.',
-            postedAt: 'Há 2 dias',
-            link: '#'
-        },
-        // ... (rest of mock if needed, but we prefer dynamic)
-    ];
+const VagasFeed = ({ items = [] }) => {
+    const displayVagas = items || [];
 
-    const displayVagas = items && items.length > 0 ? items : localMock;
+    if (displayVagas.length === 0) {
+        return (
+            <div className="vagas-feed">
+                <div className="section-header">
+                    <h2 className="section-title">Vagas & Oportunidades</h2>
+                    <div className="section-line"></div>
+                    <p className="section-subtitle">Nenhuma vaga encontrada no momento.</p>
+                </div>
+            </div>
+        );
+    }
 
     const handleShare = (vaga) => {
         const text = `Vaga: ${vaga.title} em ${vaga.company} (${vaga.location}). Confira no Hermeneuta!`;

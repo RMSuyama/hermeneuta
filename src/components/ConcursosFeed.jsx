@@ -1,9 +1,8 @@
 import React from 'react';
-import { mockConcursos } from '../data/mockConcursos';
 import { motion } from 'framer-motion';
 import { ExternalLink, Briefcase, GraduationCap, Share2 } from 'lucide-react';
 
-const ConcursosFeed = () => {
+const ConcursosFeed = ({ concursos = [] }) => {
   const handleShare = () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -25,6 +24,17 @@ const ConcursosFeed = () => {
       default: return 'var(--color-text-muted)';
     }
   };
+
+  if (!concursos || concursos.length === 0) {
+    return (
+      <div className="concursos-feed">
+        <div className="section-header">
+          <h2 className="section-title">Oportunidades & Concursos</h2>
+          <p className="page-intro">Nenhum concurso encontrado no momento. Verifique novamente mais tarde.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="concursos-feed">
@@ -48,7 +58,7 @@ const ConcursosFeed = () => {
           <span className="header-item">Ação</span>
         </div>
 
-        {mockConcursos.map((item, idx) => (
+        {concursos.map((item, idx) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, x: -10 }}
@@ -78,7 +88,7 @@ const ConcursosFeed = () => {
             </div>
 
             <div className="col-status">
-              <span className={`status-text ${item.status.toLowerCase().includes('aberta') ? 'open' : ''}`}>
+              <span className={`status-text ${item.status?.toLowerCase().includes('aberta') ? 'open' : ''}`}>
                 {item.status}
               </span>
             </div>

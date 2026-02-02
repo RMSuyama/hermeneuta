@@ -7,9 +7,12 @@ const AboutSection = () => {
             <div className="about-card">
                 <h2>A Voz do Direito no Vale do Ribeira</h2>
                 <p>
-                    O <strong>Hermeneuta</strong> nasceu de uma lacuna real: a necessidade de uma plataforma que
-                    entendesse a dinâmica única do Direito no interior paulista. Não somos apenas um agregador de notícias,
-                    mas um ecossistema projetado para elevar a prática jurídica regional.
+                    O <strong>Hermeneuta</strong> foi criado por <strong>Rafael Moreira Suyama</strong>,
+                    advogado comprometido em fortalecer a prática jurídica no Vale do Ribeira.
+                    Este projeto nasceu com uma missão clara: unir a comunidade jurídica regional,
+                    democratizar o acesso à informação de qualidade e elevar o nível da advocacia no interior paulista.
+                    Mais do que um portal de notícias, somos um ecossistema dedicado a conectar profissionais,
+                    compartilhar conhecimento e promover a união entre todos que atuam no Direito em nossa região.
                 </p>
                 <div className="about-features-grid">
                     <div className="feature-small">

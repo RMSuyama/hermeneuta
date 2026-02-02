@@ -18,8 +18,21 @@ const FocusHub = ({ focusMode, setFocusMode }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolume] = useState(20);
+    const [selectedAudio, setSelectedAudio] = useState('lofi');
     const playerRef = useRef(null);
-    const videoId = 'jfKfPfyJRdk'; // Lofi Girl
+
+    // Multiple 24/7 Audio Streams for Concentration
+    const audioStreams = {
+        lofi: { id: 'jfKfPfyJRdk', name: 'Lofi Beats', description: 'Chill beats para concentração' },
+        classical: { id: '4XW0H2aid9A', name: 'Música Clássica', description: 'Piano clássico relaxante 24/7' },
+        whiteNoise: { id: 'nMfPqeZjc2E', name: 'Ruído Branco', description: 'White noise para foco profundo' },
+        brownNoise: { id: 'RqzGzwTY-6w', name: 'Ruído Marrom', description: 'Brown noise para estudo' },
+        jazz: { id: 'Dx5qFachd3A', name: 'Jazz Suave', description: 'Smooth jazz instrumental' },
+        nature: { id: 'eKFTSSKCzWA', name: 'Sons da Natureza', description: 'Chuva e trovões suaves' },
+        ambient: { id: '5qap5aO4i9A', name: 'Ambient Space', description: 'Música ambiente espacial' }
+    };
+
+    const videoId = audioStreams[selectedAudio].id;
 
     // --- Notes State ---
     const [notes, setNotes] = useState(() => localStorage.getItem('academic_notes') || '');
@@ -154,7 +167,38 @@ const FocusHub = ({ focusMode, setFocusMode }) => {
                                 {activeTab === 'audio' && (
                                     <div className="pane-view">
                                         <h3>Study Lounge</h3>
-                                        <p>Lofi Beats for deep concentration</p>
+                                        <p>Escolha o som ideal para sua concentração</p>
+
+                                        <div className="audio-selector">
+                                            <label>Tipo de Áudio</label>
+                                            <select
+                                                value={selectedAudio}
+                                                onChange={(e) => {
+                                                    const newStream = e.target.value;
+                                                    const wasPlaying = isPlaying;
+                                                    if (wasPlaying && playerRef.current) {
+                                                        playerRef.current.pauseVideo();
+                                                    }
+                                                    setSelectedAudio(newStream);
+                                                    // Reload player with new video
+                                                    setTimeout(() => {
+                                                        if (playerRef.current && wasPlaying) {
+                                                            playerRef.current.loadVideoById(audioStreams[newStream].id);
+                                                            playerRef.current.playVideo();
+                                                        } else if (playerRef.current) {
+                                                            playerRef.current.loadVideoById(audioStreams[newStream].id);
+                                                        }
+                                                    }, 100);
+                                                }}
+                                                className="audio-dropdown"
+                                            >
+                                                {Object.entries(audioStreams).map(([key, stream]) => (
+                                                    <option key={key} value={key}>{stream.name}</option>
+                                                ))}
+                                            </select>
+                                            <p className="stream-description">{audioStreams[selectedAudio].description}</p>
+                                        </div>
+
                                         <div className="audio-player-ui">
                                             <button className="big-play-btn" onClick={() => isPlaying ? playerRef.current.pauseVideo() : playerRef.current.playVideo()}>
                                                 {isPlaying ? <Pause size={32} /> : <Play size={32} fill="currentColor" />}
@@ -338,6 +382,58 @@ const FocusHub = ({ focusMode, setFocusMode }) => {
                 body.dark-mode .big-play-btn { background: #1e293b; color: #fff; }
                 .volume-widget { display: flex; align-items: center; gap: 1rem; width: 100%; }
                 .volume-widget input { flex: 1; }
+
+                .audio-selector { 
+                    margin-bottom: 1.5rem; 
+                    width: 100%; 
+                }
+                .audio-selector label { 
+                    display: block; 
+                    font-size: 0.75rem; 
+                    font-weight: 700; 
+                    color: #64748b; 
+                    margin-bottom: 0.5rem; 
+                    text-transform: uppercase; 
+                    letter-spacing: 0.5px; 
+                }
+                .audio-dropdown { 
+                    width: 100%; 
+                    padding: 0.75rem 1rem; 
+                    border-radius: 12px; 
+                    border: 1px solid #e2e8f0; 
+                    background: #f8fafc; 
+                    font-family: var(--font-sans); 
+                    font-size: 0.9rem; 
+                    font-weight: 600; 
+                    color: #1e293b; 
+                    cursor: pointer; 
+                    transition: all 0.2s; 
+                    outline: none;
+                }
+                .audio-dropdown:hover { 
+                    border-color: #C5A022; 
+                    background: #fff; 
+                }
+                .audio-dropdown:focus { 
+                    border-color: #C5A022; 
+                    box-shadow: 0 0 0 3px rgba(197, 160, 34, 0.1); 
+                }
+                body.dark-mode .audio-dropdown { 
+                    background: #1e293b; 
+                    border-color: #334155; 
+                    color: #f8fafc; 
+                }
+                body.dark-mode .audio-dropdown:hover { 
+                    background: #0f172a; 
+                    border-color: #C5A022; 
+                }
+                .stream-description { 
+                    font-size: 0.8rem !important; 
+                    color: #94a3b8 !important; 
+                    margin-top: 0.5rem !important; 
+                    margin-bottom: 0 !important; 
+                    font-style: italic; 
+                }
 
                 .pane-view.full { height: 100%; }
                 .pane-view textarea { flex: 1; width: 100%; background: none; border: none; outline: none; resize: none; font-family: var(--font-serif); font-size: 1rem; line-height: 1.5; color: inherit; }
