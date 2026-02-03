@@ -10,9 +10,17 @@ const StudyLounge = () => {
     const playerRef = useRef(null);
 
     const [volume, setVolume] = useState(15);
+    const [activeTrack, setActiveTrack] = useState(0);
 
-    // Live Radio - Lofi Girl
-    const videoId = 'jfKfPfyJRdk';
+    const tracks = [
+        { id: 'jfKfPfyJRdk', title: 'Lofi Beats', subtitle: 'Beats for Focus', type: 'LOFI' },
+        { id: '1YVpL8hB7vU', title: 'Classical Mix', subtitle: 'Academic Excellence', type: 'CLASSICAL' },
+        { id: 'S_fH_Yh_P9o', title: 'Brown Noise', subtitle: 'Pure Concentration', type: 'NOISE' },
+        { id: 'nMfPqeZjc2c', title: 'White Noise', subtitle: 'Deep Workspace', type: 'NOISE' }
+    ];
+
+    const currentTrack = tracks[activeTrack];
+    const videoId = currentTrack.id;
 
     useEffect(() => {
         let timeout;
@@ -107,15 +115,22 @@ const StudyLounge = () => {
                     },
                     'onError': (error) => {
                         console.error("YouTube Player Error:", error.data);
-                        // 150/101 are standard embed blocked errors
                         if (error.data === 150 || error.data === 101) {
-                            alert("O vídeo atual pode ter restrições de reprodução. Tente abrir pelo YouTube.");
+                            alert("Este vídeo não permite reprodução externa. Tente outro canal.");
                         }
                     }
                 }
             });
         } catch (err) {
             console.error("Failed to construct YT.Player:", err);
+        }
+    };
+
+    const changeTrack = (index) => {
+        setActiveTrack(index);
+        if (playerRef.current && isLoaded) {
+            playerRef.current.loadVideoById(tracks[index].id);
+            setIsPlaying(true);
         }
     };
 
@@ -212,8 +227,23 @@ const StudyLounge = () => {
 
                         <div className="lounge-body">
                             <div className="lounge-info">
-                                <p>Música para Foco & Produtividade</p>
-                                <small>Beats by Hermeneuta</small>
+                                <p>{currentTrack.title}</p>
+                                <small>{currentTrack.subtitle}</small>
+                            </div>
+
+                            <div className="track-selector">
+                                {tracks.map((track, idx) => (
+                                    <button
+                                        key={track.id}
+                                        className={`track-option ${activeTrack === idx ? 'active' : ''}`}
+                                        onClick={() => changeTrack(idx)}
+                                        title={track.title}
+                                    >
+                                        {track.type === 'LOFI' && <Music size={14} />}
+                                        {track.type === 'CLASSICAL' && <GraduationCap size={14} />}
+                                        {track.type === 'NOISE' && <Volume2 size={14} />}
+                                    </button>
+                                ))}
                             </div>
 
                             <div className="lounge-controls">
@@ -258,7 +288,7 @@ const StudyLounge = () => {
                                     <span className="vol-percentage">{volume}%</span>
                                 </div>
                                 <div className="volume-disclaimer">
-                                    Mínimo estratégico de 15% para validação de ads.
+                                    Mínimo estratégico de 15% para validação.
                                 </div>
                             </div>
                         </div>
@@ -380,8 +410,45 @@ const StudyLounge = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 1.5rem;
-          margin: 1rem 0;
+          gap: 1.2rem;
+          margin: 0.5rem 0 1rem;
+        }
+
+        .track-selector {
+          display: flex;
+          justify-content: center;
+          gap: 0.5rem;
+          margin-top: 1rem;
+          padding: 0.5rem;
+          background: rgba(255,255,255,0.05);
+          border-radius: 30px;
+        }
+
+        .track-option {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 1px solid rgba(250,204,21,0.2);
+          background: none;
+          color: rgba(255,255,255,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .track-option:hover {
+          background: rgba(250,204,21,0.1);
+          color: white;
+          border-color: #FACC15;
+        }
+
+        .track-option.active {
+          background: #FACC15;
+          color: #080A0F;
+          border-color: #FACC15;
+          box-shadow: 0 0 10px rgba(250,204,21,0.3);
         }
 
         .control-btn {

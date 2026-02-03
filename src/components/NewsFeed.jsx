@@ -248,10 +248,10 @@ const NewsFeed = ({ news, editors, isAuthenticated, focusMode, setFocusMode }) =
           .article-image-container img {
             width: 100%;
             height: auto;
-            max-height: 450px;
+            max-height: 350px;
             object-fit: cover;
             border-radius: 4px;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
           }
 
           .article-citation {
@@ -484,8 +484,8 @@ const NewsFeed = ({ news, editors, isAuthenticated, focusMode, setFocusMode }) =
         }
 
         .category-tag { font-family: var(--font-sans); font-size: 0.7rem; font-weight: 800; color: var(--color-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem; }
-        .featured-article h2 { font-size: 3rem; margin-bottom: 1.5rem; line-height: 1.1; font-family: var(--font-serif); }
-        .featured-img { width: 100%; height: 400px; object-fit: cover; margin: 1.5rem 0; border-radius: 4px; }
+        .featured-article h2 { font-size: 2.4rem; margin-bottom: 1.2rem; line-height: 1.1; font-family: var(--font-serif); }
+        .featured-img { width: 100%; height: 320px; object-fit: cover; margin: 1.2rem 0; border-radius: 4px; }
         .excerpt { 
           font-size: 1.2rem; 
           line-height: 1.6;

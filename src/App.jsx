@@ -18,6 +18,8 @@ import AcademicTools from './components/AcademicTools';
 import LoginForm from './components/LoginForm';
 import MaintenanceScreen from './components/MaintenanceScreen';
 import LoadingScreen from './components/LoadingScreen';
+import CoursesFeed from './components/CoursesFeed';
+import CorporateTraining from './components/CorporateTraining';
 import { useData } from './hooks/useData';
 import { Settings, LogOut, Moon, Sun, BookOpen } from 'lucide-react';
 
@@ -174,6 +176,8 @@ function App() {
             <Route path="/news/:id" element={<NewsFeed news={news} editors={editors} isAuthenticated={isAuthenticated} focusMode={focusMode} setFocusMode={setFocusMode} />} />
             <Route path="/instituicoes" element={<InstituicoesFeed instituicoes={instituicoes} />} />
             <Route path="/instituicoes/:id" element={<InstituicoesFeed instituicoes={instituicoes} />} />
+            <Route path="/cursos" element={<CoursesFeed />} />
+            <Route path="/treinamento" element={<CorporateTraining />} />
             <Route path="/vagas" element={<VagasFeed items={data.vagas} />} />
             <Route path="/horarios" element={<HorarioOnibusFeed />} />
             <Route path="/equipamentos" element={<EquipamentosFeed equipamentos={equipamentos} />} />

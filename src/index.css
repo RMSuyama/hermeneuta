@@ -3,12 +3,13 @@
 :root {
   font-size: 85%;
   --color-primary: #121212;
-  --color-secondary: #4A0E0E;
+  --color-secondary: #C5A022;
+  /* Premium Gold instead of Red */
   --color-accent: #C5A022;
   --color-background: #FDFCF8;
-  --color-text: #2C2C2C;
-  --color-text-muted: #555555;
-  --color-border: #E5E1D8;
+  --color-text: #1A1A1A;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
 
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
@@ -166,7 +167,7 @@ body.focus-mode-active .app-wrapper {
 .article-image-container img {
   max-width: 100%;
   height: auto;
-  max-height: 400px;
+  max-height: 320px;
   /* Constrain vertical size */
   object-fit: cover;
   border-radius: 4px;
@@ -210,12 +211,13 @@ body.focus-mode-active .featured-excerpt {
 
 /* ... keep dark mode ... */
 body.dark-mode {
-  --color-background: #080A0F;
-  --color-text: #F1F5F9;
+  --color-background: #0F172A;
+  --color-text: #F8FAFC;
   --color-text-muted: #94A3B8;
   --color-primary: #F8FAFC;
   --color-border: #1E293B;
-  --color-secondary: #FF8E8E;
+  --color-secondary: #C5A022;
+  /* Gold in dark mode too */
   --color-accent: #FACC15;
 }
 
@@ -318,13 +320,15 @@ body.dark-mode .featured-voz {
 }
 
 body.dark-mode .filter-btn.active,
+body.dark-mode .city-btn.active,
 body.dark-mode .book-btn,
 body.dark-mode .submit-btn,
 body.dark-mode .login-btn,
 body.dark-mode .apply-btn,
 body.dark-mode .contact-action-btn {
-  background-color: var(--color-accent) !important;
-  color: #080A0F !important;
+  background-color: var(--color-secondary) !important;
+  color: #0F172A !important;
+  /* Ensure dark text on light accent */
 }
 
 body.dark-mode .book-btn:hover,

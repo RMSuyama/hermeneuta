@@ -1,20 +1,8 @@
 import React from 'react';
-import { Briefcase, MapPin, DollarSign, Clock, Building, ExternalLink } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, Clock, Building, ExternalLink, Globe } from 'lucide-react';
 
 const VagasFeed = ({ items = [] }) => {
     const displayVagas = items || [];
-
-    if (displayVagas.length === 0) {
-        return (
-            <div className="vagas-feed">
-                <div className="section-header">
-                    <h2 className="section-title">Vagas & Oportunidades</h2>
-                    <div className="section-line"></div>
-                    <p className="section-subtitle">Nenhuma vaga encontrada no momento.</p>
-                </div>
-            </div>
-        );
-    }
 
     const handleShare = (vaga) => {
         const text = `Vaga: ${vaga.title} em ${vaga.company} (${vaga.location}). Confira no Hermeneuta!`;
@@ -31,48 +19,87 @@ const VagasFeed = ({ items = [] }) => {
     };
 
     return (
-        <div className="vagas-feed">
+        <div className="vagas-feed fade-in">
             <div className="section-header">
                 <h2 className="section-title">Vagas & Oportunidades</h2>
                 <div className="section-line"></div>
                 <p className="section-subtitle">Conectando talentos jurídicos no Vale do Ribeira</p>
             </div>
 
-            <div className="vagas-list">
-                {displayVagas.map((vaga) => (
-                    <div key={vaga.id} className="vaga-card">
-                        <div className="vaga-main">
-                            <div className="vaga-header">
-                                <h3>{vaga.title}</h3>
-                                <span className="vaga-type">{vaga.type}</span>
-                            </div>
-
-                            <div className="vaga-company">
-                                <Building size={16} /> <span>{vaga.company}</span>
-                            </div>
-
-                            <div className="vaga-details">
-                                <div className="detail-item">
-                                    <MapPin size={14} /> {vaga.location}
-                                </div>
-                                <div className="detail-item">
-                                    <DollarSign size={14} /> {vaga.salary}
-                                </div>
-                                <div className="detail-item">
-                                    <Clock size={14} /> {vaga.postedAt}
-                                </div>
-                            </div>
-
-                            <p className="vaga-desc">{vaga.description}</p>
-                        </div>
-
-                        <div className="vaga-actions">
-                            <button className="apply-btn">Candidatar-se</button>
-                            <button className="share-btn-card" onClick={() => handleShare(vaga)}>Compartilhar</button>
-                        </div>
+            {/* Remote Jobs Highlight */}
+            <div className="remote-jobs-highlight">
+                <div className="remote-card">
+                    <div className="remote-icon">
+                        <Globe size={32} />
                     </div>
-                ))}
+                    <div className="remote-content">
+                        <h3>Vagas Remotas (Home Office)</h3>
+                        <p>
+                            Expandimos nossa curadoria para oportunidades remotas em todo o Brasil.
+                            Confira vagas atualizadas diariamente no LinkedIn para profissionais jurídicos.
+                        </p>
+                        <a
+                            href="https://www.linkedin.com/jobs/search/?keywords=advogado%20remoto&location=Brasil&f_WT=2"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="linkedin-btn"
+                        >
+                            Ver Vagas no LinkedIn <ExternalLink size={14} style={{ marginLeft: '5px' }} />
+                        </a>
+                    </div>
+                </div>
             </div>
+
+            <h3 className="local-title">Oportunidades Locais & Regionais</h3>
+
+            {displayVagas.length === 0 ? (
+                <div className="empty-state">
+                    <p>Nenhuma vaga local cadastrada no momento.</p>
+                    <small>Fique atento às atualizações ou confira as vagas remotas acima.</small>
+                </div>
+            ) : (
+                <div className="vagas-list">
+                    {displayVagas.map((vaga) => (
+                        <div key={vaga.id} className="vaga-card">
+                            <div className="vaga-main">
+                                <div className="vaga-header">
+                                    <h3>{vaga.title}</h3>
+                                    <span className="vaga-type">{vaga.type}</span>
+                                </div>
+
+                                <div className="vaga-company">
+                                    <Building size={16} /> <span>{vaga.company}</span>
+                                </div>
+
+                                <div className="vaga-details">
+                                    <div className="detail-item">
+                                        <MapPin size={14} /> {vaga.location}
+                                    </div>
+                                    <div className="detail-item">
+                                        <DollarSign size={14} /> {vaga.salary}
+                                    </div>
+                                    <div className="detail-item">
+                                        <Clock size={14} /> {vaga.postedAt}
+                                    </div>
+                                </div>
+
+                                <p className="vaga-desc">{vaga.description}</p>
+                            </div>
+
+                            <div className="vaga-actions">
+                                {vaga.link ? (
+                                    <a href={vaga.link} target="_blank" rel="noopener noreferrer" className="apply-btn" style={{ textAlign: 'center', textDecoration: 'none', display: 'inline-block' }}>
+                                        Candidatar-se
+                                    </a>
+                                ) : (
+                                    <button className="apply-btn">Candidatar-se</button>
+                                )}
+                                <button className="share-btn-card" onClick={() => handleShare(vaga)}>Compartilhar</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <style jsx>{`
         .vagas-feed { padding: 2rem 0; max-width: 800px; margin: 0 auto; }
@@ -80,6 +107,77 @@ const VagasFeed = ({ items = [] }) => {
         .section-title { font-family: var(--font-serif); font-size: 2.5rem; color: var(--color-primary); margin-bottom: 0.5rem; }
         .section-line { width: 60px; height: 3px; background: var(--color-accent); margin: 0 auto 1rem; }
         .section-subtitle { font-family: var(--font-sans); color: var(--color-text-muted); text-transform: uppercase; font-size: 0.9rem; }
+
+        /* Remote Card Styles */
+        .remote-jobs-highlight { margin-bottom: 4rem; }
+        .remote-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            border: 1px solid var(--color-accent);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .remote-icon {
+            background: rgba(197, 160, 34, 0.2);
+            padding: 1rem;
+            border-radius: 50%;
+            color: var(--color-accent);
+            flex-shrink: 0;
+        }
+
+        .remote-content h3 {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            color: var(--color-accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .remote-content p {
+            color: #ccc;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .linkedin-btn {
+            display: inline-flex;
+            align-items: center;
+            background: var(--color-accent);
+            color: #121212;
+            padding: 0.8rem 1.5rem;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .linkedin-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .local-title {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            color: var(--color-primary);
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--color-text-muted);
+            padding: 3rem;
+            background: rgba(0,0,0,0.02);
+            border-radius: 8px;
+        }
 
         .vagas-list { display: flex; flex-direction: column; gap: 2rem; }
 
@@ -150,6 +248,8 @@ const VagasFeed = ({ items = [] }) => {
           .vaga-card { flex-direction: column; }
           .vaga-actions { width: 100%; flex-direction: row; }
           .apply-btn, .share-btn-card { flex: 1; text-align: center; }
+          .remote-card { flex-direction: column; text-align: center; padding: 1.5rem; }
+          .remote-content p { margin: 0 auto 1.5rem; }
         }
       `}</style>
         </div>

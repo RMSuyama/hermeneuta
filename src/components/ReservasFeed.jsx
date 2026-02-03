@@ -163,7 +163,7 @@ const ReservasFeed = ({ reservas = [] }) => {
           flex-direction: column;
           align-items: center;
           gap: 2rem;
-          background: white;
+          background: var(--color-background);
           padding: 2rem;
           border: 1px solid var(--color-border);
           box-shadow: 8px 8px 0 var(--color-border);
@@ -196,7 +196,7 @@ const ReservasFeed = ({ reservas = [] }) => {
           gap: 0.75rem;
           padding: 0.75rem 1.25rem;
           border: 1px solid var(--color-border);
-          background: #fdfdfd;
+          background: rgba(0,0,0,0.02);
         }
 
         .city-filters, .category-filters {
@@ -217,6 +217,7 @@ const ReservasFeed = ({ reservas = [] }) => {
           font-weight: 700;
           font-size: 0.75rem;
           text-transform: uppercase;
+          color: var(--color-text);
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -228,7 +229,7 @@ const ReservasFeed = ({ reservas = [] }) => {
 
         .city-btn.active, .filter-btn.active {
           background: var(--color-primary);
-          color: white;
+          color: var(--color-background); /* Use background color for text to ensure contrast */
           border-color: var(--color-primary);
         }
 

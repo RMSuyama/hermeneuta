@@ -8,6 +8,8 @@ const Navigation = () => {
 
   const links = [
     { id: 'news', path: '/', label: 'Notícias', icon: <Newspaper size={16} /> },
+    { id: 'cursos', path: '/cursos', label: 'Cursos', icon: <GraduationCap size={16} /> },
+    { id: 'treinamento', path: '/treinamento', label: 'Treinamento', icon: <Briefcase size={16} /> },
     { id: 'instituicoes', path: '/instituicoes', label: 'Instituições', icon: <Building size={16} /> },
     { id: 'vagas', path: '/vagas', label: 'Vagas', icon: <Briefcase size={16} /> },
     { id: 'horarios', path: '/horarios', label: 'Ônibus', icon: <Bus size={16} /> },
